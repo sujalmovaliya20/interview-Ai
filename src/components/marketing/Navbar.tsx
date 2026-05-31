@@ -18,8 +18,8 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" render={<Link href="/auth/signin" />}>Sign In</Button>
-          <Button render={<Link href="/auth/signin" />}>Get Started</Button>
+          <Button nativeButton={false} variant="ghost" render={<Link href="/auth/signin" />}>Sign In</Button>
+          <Button nativeButton={false} render={<Link href="/auth/signin" />}>Get Started</Button>
         </div>
       </div>
     </header>

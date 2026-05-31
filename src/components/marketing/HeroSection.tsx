@@ -23,10 +23,10 @@ export function HeroSection() {
         </p>
 
         <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-20">
-          <Button size="lg" className="w-full sm:w-auto text-base h-12 px-8" render={<Link href="/auth/signin" />}>
+          <Button nativeButton={false} size="lg" className="w-full sm:w-auto text-base h-12 px-8" render={<Link href="/auth/signin" />}>
               Start Free Trial <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-          <Button size="lg" variant="outline" className="w-full sm:w-auto text-base h-12 px-8" render={<Link href="#features" />}>See how it works</Button>
+          <Button nativeButton={false} size="lg" variant="outline" className="w-full sm:w-auto text-base h-12 px-8" render={<Link href="#features" />}>See how it works</Button>
         </div>
 
         <div className="text-sm font-medium text-muted-foreground mb-8">

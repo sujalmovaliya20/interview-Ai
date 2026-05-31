@@ -90,7 +90,7 @@ export default async function DashboardPage() {
               <div>
                 <CardTitle>Recent Sessions</CardTitle>
               </div>
-              <Button size="sm" render={<Link href="/dashboard/session/new" />}>Start New Session</Button>
+              <Button nativeButton={false} size="sm" render={<Link href="/dashboard/session/new" />}>Start New Session</Button>
             </CardHeader>
             <CardContent>
               {sessions && sessions.length > 0 ? (
@@ -124,7 +124,7 @@ export default async function DashboardPage() {
                     </TableBody>
                   </Table>
                   <div className="text-center">
-                    <Button variant="link" render={<Link href="/dashboard/sessions" />}>
+                    <Button nativeButton={false} variant="link" render={<Link href="/dashboard/sessions" />}>
                         View all sessions <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                   </div>
@@ -136,7 +136,7 @@ export default async function DashboardPage() {
                   <p className="text-sm text-muted-foreground mb-4">
                     Ready to ace your first interview?
                   </p>
-                  <Button render={<Link href="/dashboard/session/new" />}>Start your first session</Button>
+                  <Button nativeButton={false} render={<Link href="/dashboard/session/new" />}>Start your first session</Button>
                 </div>
               )}
             </CardContent>

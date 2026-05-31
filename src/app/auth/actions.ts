@@ -19,7 +19,7 @@ export async function signIn(prevState: any, formData: FormData) {
   }
 
   const supabase = await createClient()
-  
+
   const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
   const { error } = await supabase.auth.signInWithOtp({

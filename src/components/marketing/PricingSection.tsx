@@ -28,7 +28,7 @@ export function PricingSection() {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" variant="outline" render={<Link href="/auth/signin" />}>Get Started</Button>
+              <Button nativeButton={false} className="w-full" variant="outline" render={<Link href="/auth/signin" />}>Get Started</Button>
             </CardFooter>
           </Card>
 
@@ -51,7 +51,7 @@ export function PricingSection() {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" render={<Link href="/auth/signin" />}>Start Free Trial</Button>
+              <Button nativeButton={false} className="w-full" render={<Link href="/auth/signin" />}>Start Free Trial</Button>
             </CardFooter>
           </Card>
 
@@ -70,7 +70,7 @@ export function PricingSection() {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" variant="outline" render={<Link href="/auth/signin" />}>Get Started</Button>
+              <Button nativeButton={false} className="w-full" variant="outline" render={<Link href="/auth/signin" />}>Get Started</Button>
             </CardFooter>
           </Card>
         </div>

@@ -1,6 +1,7 @@
 'use client'
 
-import { useFormState, useFormStatus } from 'react-dom'
+import { useActionState } from 'react'
+import { useFormStatus } from 'react-dom'
 import { signIn } from '@/app/auth/actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,7 +25,7 @@ function SubmitButton() {
 }
 
 export function SignInForm() {
-  const [state, formAction] = useFormState(signIn, initialState as any)
+  const [state, formAction] = useActionState(signIn, initialState as any)
 
   if (state?.success) {
     return (

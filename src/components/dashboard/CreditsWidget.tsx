@@ -31,7 +31,7 @@ export function CreditsWidget() {
         {isLow && <Badge variant="destructive" className="bg-amber-500 hover:bg-amber-600">Low</Badge>}
       </div>
       <div className="text-3xl font-bold mb-4">{credits}</div>
-      <Button size="sm" variant="outline" className="w-full" render={<Link href="#pricing" />}>Add credits</Button>
+      <Button nativeButton={false} size="sm" variant="outline" className="w-full" render={<Link href="#pricing" />}>Add credits</Button>
     </div>
   )
 }
