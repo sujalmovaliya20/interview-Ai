@@ -2,8 +2,10 @@ import { Server, Socket } from 'socket.io'
 import { Redis } from 'ioredis'
 import { supabase } from '../lib/supabase'
 import pino from 'pino'
+import fs from 'fs'
 
 const logger = pino()
+const debugLog = (msg: string) => fs.appendFileSync('d:/Aiinterview/server_debug.log', new Date().toISOString() + ': ' + msg + '\n')
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
@@ -51,21 +53,29 @@ export function registerSessionHandlers(io: Server, socket: Socket, redis: Redis
 
   socket.on('audio_chunk', async (chunk: ArrayBuffer) => {
     try {
+      debugLog('Received audio_chunk size: ' + chunk.byteLength)
       const room = Array.from(socket.rooms).find(r => r.startsWith('session:'))
-      if (!room) return
+      if (!room) {
+        debugLog('No room found for socket!')
+        return
+      }
 
       const sessionId = room.split(':')[1]
+      debugLog('Room found: ' + sessionId)
 
       if (!chunk || chunk.byteLength < 100 || chunk.byteLength > 500000) {
+        debugLog('Invalid chunk size')
         return // Silently ignore invalid chunks
       }
 
       const queueKey = `audio:queue:${sessionId}`
       await redis.lpush(queueKey, Buffer.from(chunk))
       await redis.ltrim(queueKey, 0, 99) // Max 100 chunks
+      debugLog('Pushed to redis, setting timeout for transcript_delta')
 
       // Phase 3 MOCK TRANSCRIPTION
       setTimeout(() => {
+        debugLog('Emitting transcript_delta to ' + room)
         io.to(room).emit('transcript_delta', {
           text: '[Transcribing...] ' + new Date().toISOString(),
           isFinal: true,
@@ -73,6 +83,7 @@ export function registerSessionHandlers(io: Server, socket: Socket, redis: Redis
         })
       }, 300)
     } catch (error) {
+      debugLog('Error processing chunk: ' + error)
       logger.error(error, 'Error processing audio chunk')
     }
   })

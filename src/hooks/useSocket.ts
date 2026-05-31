@@ -34,6 +34,10 @@ export function useSocket({ sessionId, token, enabled }: UseSocketProps) {
       setIsConnected(false)
     }
 
+    if (socket.connected) {
+      onConnect()
+    }
+
     const onSessionJoined = () => {
       setIsJoining(false)
     }

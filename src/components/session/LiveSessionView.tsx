@@ -4,6 +4,7 @@ import { useEffect, useCallback, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSessionStore } from '@/store/sessionStore'
 import { useSocket } from '@/hooks/useSocket'
+import { createSocket } from '@/lib/socket'
 import { useAudioCapture } from '@/hooks/useAudioCapture'
 import { useTimer } from '@/hooks/useTimer'
 import { useCredits } from '@/hooks/useCredits'
@@ -22,7 +23,7 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
   const router = useRouter()
   const creditsQuery = useCredits() as any
   const balance = creditsQuery?.balance || 0
-  
+
   // Zustand state & actions
   const status = useSessionStore(state => state.status)
   const setStatus = useSessionStore(state => state.setStatus)
@@ -58,27 +59,45 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
   })
 
   // Audio capture
-  const { 
-    isRecording, 
-    isPaused, 
-    audioLevel, 
-    error: audioError, 
-    start: startAudio, 
-    pause: pauseAudio, 
-    resume: resumeAudio, 
-    stop: stopAudio 
+  const [debugMsg, setDebugMsg] = useState('Init')
+  const handleChunk = useCallback((chunk: ArrayBuffer) => {
+    setDebugMsg('Got chunk: ' + chunk.byteLength)
+    sendChunk(chunk)
+  }, [sendChunk])
+
+  const {
+    isRecording,
+    isPaused,
+    audioLevel,
+    error: audioError,
+    start: startAudio,
+    pause: pauseAudio,
+    resume: resumeAudio,
+    stop: stopAudio
   } = useAudioCapture({
-    onChunk: sendChunk,
+    onChunk: handleChunk,
     enabled: status === 'active'
   })
 
+  const [hasStarted, setHasStarted] = useState(false)
+
   // Start recording once socket is connected and session joined
   useEffect(() => {
-    if (isConnected && !isJoining && status === 'active' && !isRecording && !audioError) {
+    // Only connect the socket and timer initially, do NOT start audio yet.
+    // Audio must be started via user interaction to bypass Autoplay policies.
+  }, [])
+
+  const handleStartSession = () => {
+    if (isConnected && !isJoining && status === 'active' && !audioError) {
+      setHasStarted(true)
       startAudio()
       startTimer()
+    } else if (audioError) {
+      toast.error('Cannot start: Microphone access denied or not found.')
+    } else {
+      toast.error('Cannot start: Connecting to server...')
     }
-  }, [isConnected, isJoining, status, isRecording, audioError, startAudio, startTimer])
+  }
 
   // Handle errors
   useEffect(() => {
@@ -91,29 +110,27 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
   // Given we created useSocket without callback props in Step 4, let's fix it by adding a listener effect here that hooks into the socket instance.
   // Wait, `socket.ts` has a singleton. We can listen directly here.
   useEffect(() => {
-    import('@/lib/socket').then(({ createSocket }) => {
-      const socket = createSocket(accessToken)
-      
-      const onTranscript = (payload: any) => appendTranscriptDelta(payload)
-      const onAnswer = (payload: any) => appendAnswerDelta(payload)
-      const onSessionEnded = (payload: any) => {
-        setStatus('ended')
-        setSessionDuration(payload.duration)
-        setShowSummary(true)
-        stopAudio()
-        pauseTimer()
-      }
+    const socket = createSocket(accessToken)
 
-      socket.on('transcript_delta', onTranscript)
-      socket.on('answer_delta', onAnswer)
-      socket.on('session_ended', onSessionEnded)
+    const onTranscript = (payload: any) => appendTranscriptDelta(payload)
+    const onAnswer = (payload: any) => appendAnswerDelta(payload)
+    const onSessionEnded = (payload: any) => {
+      setStatus('ended')
+      setSessionDuration(payload.duration)
+      setShowSummary(true)
+      stopAudio()
+      pauseTimer()
+    }
 
-      return () => {
-        socket.off('transcript_delta', onTranscript)
-        socket.off('answer_delta', onAnswer)
-        socket.off('session_ended', onSessionEnded)
-      }
-    })
+    socket.on('transcript_delta', onTranscript)
+    socket.on('answer_delta', onAnswer)
+    socket.on('session_ended', onSessionEnded)
+
+    return () => {
+      socket.off('transcript_delta', onTranscript)
+      socket.off('answer_delta', onAnswer)
+      socket.off('session_ended', onSessionEnded)
+    }
   }, [accessToken, appendTranscriptDelta, appendAnswerDelta, setStatus, stopAudio, pauseTimer])
 
   // Keyboard shortcuts
@@ -165,19 +182,20 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
         <div className="flex items-center gap-4 w-1/3">
           <div className="font-mono text-lg font-medium tabular-nums">{formatted}</div>
           {status === 'ending' && <Badge variant="destructive" className="animate-pulse">Ending...</Badge>}
+          <span className="text-xs text-muted-foreground">{debugMsg}</span>
         </div>
-        
+
         <div className="flex items-center justify-center gap-2 w-1/3">
           <Badge variant="outline" className="uppercase">{initialSession.model}</Badge>
           <Badge variant="secondary" className="uppercase">{initialSession.language}</Badge>
         </div>
-        
+
         <div className="flex items-center justify-end gap-2 w-1/3">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger render={
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="icon"
                   onClick={() => {
                     if (isPaused) { resumeAudio(); resumeTimer(); }
@@ -195,8 +213,8 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger render={
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   size="icon"
                   onClick={() => setShowStopDialog(true)}
                   disabled={status === 'ending' || status === 'ended'}
@@ -211,14 +229,23 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
       </div>
 
       {/* MAIN AREA */}
-      <div className="flex-1 flex gap-0 overflow-hidden">
+      <div className="flex-1 flex gap-0 overflow-hidden relative">
+        {!hasStarted && status === 'active' && (
+          <div className="absolute inset-0 z-10 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center">
+            <Button size="lg" onClick={handleStartSession} className="text-lg px-8 py-6 rounded-full shadow-lg shadow-primary/25 hover:scale-105 transition-transform">
+              <Play className="mr-2 h-6 w-6" /> Start Interview
+            </Button>
+            <p className="mt-4 text-sm text-muted-foreground">Click to enable microphone access and begin</p>
+          </div>
+        )}
+
         <div className="w-2/5 border-r flex flex-col bg-card/50">
           <div className="p-3 border-b bg-muted/30 text-xs font-semibold uppercase tracking-wider text-muted-foreground shrink-0">
             Transcript
           </div>
           <TranscriptDisplay />
         </div>
-        
+
         <div className="w-3/5 flex flex-col bg-card">
           <div className="p-3 border-b bg-muted/30 text-xs font-semibold uppercase tracking-wider text-muted-foreground shrink-0 flex justify-between items-center">
             <span>AI Answer</span>
@@ -233,7 +260,7 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
         <div className="w-32">
           <AudioLevelMeter level={audioLevel} isRecording={isRecording} isPaused={isPaused} />
         </div>
-        
+
         <div className="text-sm text-muted-foreground flex items-center gap-2 flex-1">
           {!isConnected ? (
             <><span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" /> Connecting...</>

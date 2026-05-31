@@ -58,6 +58,11 @@ export function useAudioCapture({ onChunk, enabled }: UseAudioCaptureProps) {
 
       const AudioContextCtor = window.AudioContext || (window as any).webkitAudioContext
       const context = new AudioContextCtor({ sampleRate: SAMPLE_RATE })
+      
+      if (context.state === 'suspended') {
+        await context.resume()
+      }
+      
       contextRef.current = context
 
       const source = context.createMediaStreamSource(stream)
@@ -98,8 +103,12 @@ export function useAudioCapture({ onChunk, enabled }: UseAudioCaptureProps) {
         }
       }
 
+      const gainNode = context.createGain()
+      gainNode.gain.value = 0
+
       source.connect(processor)
-      processor.connect(context.destination)
+      processor.connect(gainNode)
+      gainNode.connect(context.destination)
 
       setIsRecording(true)
       setIsPaused(false)
