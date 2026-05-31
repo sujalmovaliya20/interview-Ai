@@ -1,37 +1,54 @@
 'use client'
 
 import { useCredits } from '@/hooks/useCredits'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import Link from 'next/link'
-import { Coins, Loader2 } from 'lucide-react'
 
 export function CreditsWidget() {
-  const { credits, loading } = useCredits()
+  const { balance, isUnlimited, isLoading } = useCredits()
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="rounded-xl border bg-card text-card-foreground shadow p-4 mb-4 animate-pulse">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-          <div className="h-4 w-20 bg-muted rounded"></div>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-5 w-12" />
         </div>
+        <Skeleton className="h-2 w-full" />
+        <Skeleton className="h-8 w-full" />
       </div>
     )
   }
 
-  const isLow = credits < 2
+  const progressValue = Math.min((balance / 10) * 100, 100)
+  
+  let progressColor = '[&>div]:bg-green-500'
+  if (balance < 2) progressColor = '[&>div]:bg-red-500'
+  else if (balance <= 4) progressColor = '[&>div]:bg-amber-500'
 
   return (
-    <div className="rounded-xl border bg-card text-card-foreground shadow p-4 mb-4">
-      <div className="flex justify-between items-start mb-2">
-        <div className="text-sm font-medium text-muted-foreground flex items-center">
-          <Coins className="h-4 w-4 mr-1 text-primary" /> Credits
-        </div>
-        {isLow && <Badge variant="destructive" className="bg-amber-500 hover:bg-amber-600">Low</Badge>}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <span className="text-sm font-medium">Credits</span>
+        {isUnlimited ? (
+          <Badge className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-blue-500/20 shadow-none">
+            Unlimited plan
+          </Badge>
+        ) : (
+          <Badge variant="outline">{balance.toFixed(1)}</Badge>
+        )}
       </div>
-      <div className="text-3xl font-bold mb-4">{credits}</div>
-      <Button nativeButton={false} size="sm" variant="outline" className="w-full" render={<Link href="#pricing" />}>Add credits</Button>
+
+      {!isUnlimited && (
+        <Progress value={progressValue} className={`h-2 ${progressColor}`} />
+      )}
+
+      <Button nativeButton={false} variant="outline" size="sm" className="w-full" render={<Link href="/pricing" className="block w-full" />}>
+        Add credits
+      </Button>
     </div>
   )
 }

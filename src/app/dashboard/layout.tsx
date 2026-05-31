@@ -1,12 +1,10 @@
 import { Sidebar } from '@/components/dashboard/Sidebar'
+import { Header } from '@/components/dashboard/Header'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { Profile } from '@/types'
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -14,12 +12,29 @@ export default async function DashboardLayout({
     redirect('/auth/signin')
   }
 
+  // Fetch profile to verify it exists if needed, but for now we just use the auth user
+  const { data } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+
+  const profile = data as unknown as Profile
+
+  const safeUser = {
+    id: user.id,
+    email: profile?.email || user.email || 'user@example.com'
+  }
+
   return (
-    <div className="flex min-h-screen w-full flex-col lg:flex-row bg-muted/40">
-      <Sidebar userEmail={user.email ?? ''} />
-      <main className="flex-1 flex flex-col min-h-screen">
-        {children}
-      </main>
+    <div className="flex h-screen overflow-hidden bg-background">
+      <Sidebar user={safeUser} />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <Header title="Dashboard" user={safeUser} />
+        <main className="flex-1 overflow-y-auto bg-muted/30">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }
