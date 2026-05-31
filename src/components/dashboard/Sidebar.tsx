@@ -2,31 +2,39 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { 
   LayoutDashboard, 
   Plus, 
   History, 
   FileText, 
-  Settings, 
+  Settings2,
   LogOut,
-  BrainCircuit,
-  Menu
+  BrainCircuit
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { CreditsWidget } from '@/components/dashboard/CreditsWidget'
-import { createClient } from '@/lib/supabase/client'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { CreditsWidget } from './CreditsWidget'
+import { Separator } from '@/components/ui/separator'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuGroup,
+} from '@/components/ui/dropdown-menu'
 
 const navItems = [
-  { name: 'Home', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'New Session', href: '/dashboard/session/new', icon: Plus },
-  { name: 'Sessions', href: '/dashboard/sessions', icon: History },
-  { name: 'Documents', href: '/dashboard/documents', icon: FileText },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { label: 'Home', href: '/dashboard', icon: LayoutDashboard },
+  { label: 'New session', href: '/dashboard/session/new', icon: Plus },
+  { label: 'Sessions', href: '/dashboard/sessions', icon: History },
+  { label: 'Documents', href: '/dashboard/documents', icon: FileText },
+  { label: 'Settings', href: '/dashboard/settings', icon: Settings2 },
 ]
 
-export function Sidebar({ userEmail }: { userEmail: string }) {
+export function Sidebar({ user, isMobile = false, onNavigate }: { user: { email: string; id: string }, isMobile?: boolean, onNavigate?: () => void }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -36,70 +44,78 @@ export function Sidebar({ userEmail }: { userEmail: string }) {
     router.push('/auth/signin')
   }
 
-  const SidebarContent = (
-    <div className="flex h-full flex-col">
-      <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
+  const initials = user.email.substring(0, 2).toUpperCase()
+
+  const content = (
+    <div className="flex flex-col h-full bg-background">
+      <div className="h-16 flex items-center px-6 border-b border-border">
+        <Link href="/dashboard" className="flex items-center gap-2" onClick={onNavigate}>
           <BrainCircuit className="h-6 w-6 text-primary" />
-          <span>InterviewAI</span>
+          <span className="font-bold text-lg">InterviewAI</span>
         </Link>
       </div>
-      
-      <div className="flex-1 overflow-auto py-4">
-        <nav className="grid items-start px-2 text-sm font-medium lg:px-4 space-y-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`) && item.href !== '/dashboard'
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
-                  isActive ? "bg-muted text-primary" : "text-muted-foreground"
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.name}
-              </Link>
-            )
-          })}
-        </nav>
-      </div>
-      
-      <div className="mt-auto p-4 border-t">
+
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        {navItems.map((item) => {
+          const isActive = item.href === '/dashboard' 
+            ? pathname === item.href 
+            : pathname.startsWith(item.href)
+            
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onNavigate}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150",
+                isActive 
+                  ? "bg-primary/10 text-primary font-medium" 
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
+            >
+              <item.icon className="h-[18px] w-[18px]" />
+              <span className="text-sm">{item.label}</span>
+            </Link>
+          )
+        })}
+      </nav>
+
+      <div className="p-4 border-t border-border mt-auto">
         <CreditsWidget />
-        <div className="flex flex-col space-y-4">
-          <div className="text-sm truncate text-muted-foreground px-1" title={userEmail}>
-            {userEmail}
-          </div>
-          <Button variant="ghost" className="w-full justify-start text-muted-foreground" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign out
-          </Button>
-        </div>
+        <Separator className="my-4" />
+        <DropdownMenu>
+          <DropdownMenuTrigger className="flex items-center gap-3 w-full p-2 rounded-md hover:bg-muted transition-colors text-left outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="bg-primary/10 text-primary text-xs">{initials}</AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-medium truncate flex-1">{user.email}</span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => { router.push('/dashboard/settings'); onNavigate?.(); }}>
+                <Settings2 className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sign out</span>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   )
 
+  if (isMobile) {
+    return content
+  }
+
   return (
-    <>
-      <div className="hidden border-r bg-muted/20 lg:block lg:w-64 lg:shrink-0 h-screen sticky top-0">
-        {SidebarContent}
-      </div>
-      <div className="lg:hidden flex items-center p-4 border-b bg-background sticky top-0 z-10">
-        <Sheet>
-          <SheetTrigger render={<Button variant="outline" size="icon" className="shrink-0" />}>
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle navigation menu</span>
-            </SheetTrigger>
-          <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
-            {SidebarContent}
-          </SheetContent>
-        </Sheet>
-        <div className="flex-1 flex justify-center font-semibold">
-          <BrainCircuit className="h-5 w-5 text-primary mr-2" /> InterviewAI
-        </div>
-      </div>
-    </>
+    <aside className="hidden lg:flex w-64 flex-col border-r border-border h-screen sticky top-0 shrink-0">
+      {content}
+    </aside>
   )
 }
