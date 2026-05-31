@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 import { CreditsWidget } from './CreditsWidget'
 import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -83,28 +84,31 @@ export function Sidebar({ user, isMobile = false, onNavigate }: { user: { email:
       <div className="p-4 border-t border-border mt-auto">
         <CreditsWidget />
         <Separator className="my-4" />
-        <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-3 w-full p-2 rounded-md hover:bg-muted transition-colors text-left outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary/10 text-primary text-xs">{initials}</AvatarFallback>
-            </Avatar>
-            <span className="text-sm font-medium truncate flex-1">{user.email}</span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => { router.push('/dashboard/settings'); onNavigate?.(); }}>
-                <Settings2 className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Sign out</span>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex-1 flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors text-left outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-0">
+              <Avatar className="h-8 w-8 shrink-0">
+                <AvatarFallback className="bg-primary/10 text-primary text-xs">{initials}</AvatarFallback>
+              </Avatar>
+              <span className="text-sm font-medium truncate flex-1">{user.email}</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => { router.push('/dashboard/settings'); onNavigate?.(); }}>
+                  <Settings2 className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sign out</span>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <ThemeToggle />
+        </div>
       </div>
     </div>
   )
