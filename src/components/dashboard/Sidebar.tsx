@@ -81,6 +81,10 @@ export function Sidebar({ userEmail }: { userEmail: string }) {
     </div>
   )
 
+  if (pathname.startsWith('/dashboard/session/')) {
+    return null
+  }
+
   return (
     <>
       <div className="hidden border-r bg-muted/20 lg:block lg:w-64 lg:shrink-0 h-screen sticky top-0">
