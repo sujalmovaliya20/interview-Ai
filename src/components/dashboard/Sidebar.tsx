@@ -109,8 +109,8 @@ export function Sidebar({ user, isMobile = false, onNavigate }: { user: { email:
     </div>
   )
 
-  if (isMobile) {
-    return content
+  if (pathname.startsWith('/dashboard/session/')) {
+    return null
   }
 
   return (
