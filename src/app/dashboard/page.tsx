@@ -1,149 +1,88 @@
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Header } from '@/components/dashboard/Header'
+import { redirect } from 'next/navigation'
+import { StatsCard } from '@/components/dashboard/StatsCard'
+import { SessionsTable } from '@/components/dashboard/SessionsTable'
+import { Video, Zap, Clock, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-import { Activity, Clock, Layers, ArrowRight } from 'lucide-react'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { type Session, type Credits } from '@/types/index'
+import { Button } from '@/components/ui/button'
+import { Session, Credits } from '@/types'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
-  
-  // We already checked auth in layout, so user is guaranteed to exist
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/signin')
+
+  const [
+    creditsRes,
+    sessionsCountRes,
+    recentSessionsRes,
+    completedSessionsRes
+  ] = await Promise.all([
+    supabase.from('credits').select('balance, is_unlimited').eq('user_id', user.id).single(),
+    supabase.from('sessions').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+    supabase.from('sessions').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
+    supabase.from('sessions').select('duration_seconds').eq('user_id', user.id).eq('status', 'completed')
+  ])
+
+  const creditsData = creditsRes.data as unknown as Pick<Credits, 'balance' | 'is_unlimited'>
+  const sessionsCount = sessionsCountRes.count
+  const recentSessions = recentSessionsRes.data as unknown as Session[]
+  const completedSessions = completedSessionsRes.data as unknown as Pick<Session, 'duration_seconds'>[]
+
+  const totalSessions = sessionsCount || 0
+  const creditsValue = creditsData?.is_unlimited ? '∞' : (creditsData?.balance || 0).toFixed(1)
   
-  // Fetch credits
-  const { data: creditsDataRaw } = await supabase
-    .from('credits')
-    .select('balance')
-    .eq('user_id', user!.id)
-    .single()
-  const creditsData = creditsDataRaw as unknown as Pick<Credits, 'balance'>
-
-  // Fetch last 5 sessions
-  const { data, count: totalSessions } = await supabase
-    .from('sessions')
-    .select('*', { count: 'exact' })
-    .eq('user_id', user!.id)
-    .order('created_at', { ascending: false })
-    .limit(5)
-
-  const sessions = (data as unknown as Session[]) || []
-
-  // Calculate avg length
-  const completedSessions = sessions?.filter(s => s.status === 'completed' && s.duration_seconds) || []
-  const avgDuration = completedSessions.length > 0 
-    ? Math.round(completedSessions.reduce((acc, s) => acc + (s.duration_seconds || 0), 0) / completedSessions.length / 60)
-    : null
-
-  const balance = creditsData?.balance ?? 10
+  let avgDuration = 0
+  if (completedSessions && completedSessions.length > 0) {
+    const totalDuration = completedSessions.reduce((acc, curr) => acc + (curr.duration_seconds || 0), 0)
+    avgDuration = Math.round(totalDuration / completedSessions.length)
+  }
+  const avgM = Math.floor(avgDuration / 60)
+  const avgS = avgDuration % 60
+  const formattedAvg = avgDuration > 0 ? `${avgM}m ${avgS}s` : '—'
 
   return (
-    <>
-      <Header title="Dashboard" />
-      <div className="flex-1 space-y-6 p-6">
-        
-        <div className="grid gap-6 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalSessions ?? 0}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Credits Remaining</CardTitle>
-              <Layers className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{balance}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Session Length</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {avgDuration !== null ? `${avgDuration} min` : '—'}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Recent Sessions</CardTitle>
-              </div>
-              <Button nativeButton={false} size="sm" render={<Link href="/dashboard/session/new" />}>Start New Session</Button>
-            </CardHeader>
-            <CardContent>
-              {sessions && sessions.length > 0 ? (
-                <div className="space-y-4">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Model</TableHead>
-                        <TableHead>Duration</TableHead>
-                        <TableHead className="text-right">Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {sessions.map((session) => (
-                        <TableRow key={session.id}>
-                          <TableCell className="font-medium">
-                            {new Date(session.created_at || '').toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>{session.model}</TableCell>
-                          <TableCell>
-                            {session.duration_seconds ? `${Math.round(session.duration_seconds / 60)}m` : '—'}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Badge variant={session.status === 'completed' ? 'default' : 'secondary'}>
-                              {session.status}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                  <div className="text-center">
-                    <Button nativeButton={false} variant="link" render={<Link href="/dashboard/sessions" />}>
-                        View all sessions <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center p-8 text-center border-dashed border-2 rounded-lg bg-muted/50">
-                  <Activity className="h-10 w-10 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">No sessions yet</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Ready to ace your first interview?
-                  </p>
-                  <Button nativeButton={false} render={<Link href="/dashboard/session/new" />}>Start your first session</Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
+    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <StatsCard
+          title="Total Sessions"
+          value={totalSessions}
+          icon={Video}
+          trend={{ value: 12, label: 'vs last month' }}
+        />
+        <StatsCard
+          title="Credits"
+          value={creditsValue}
+          icon={Zap}
+        />
+        <StatsCard
+          title="Avg Duration"
+          value={formattedAvg}
+          icon={Clock}
+        />
       </div>
-    </>
+
+      {totalSessions === 0 ? (
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-4">
+          <h2 className="text-2xl font-bold">Ready for your next interview?</h2>
+          <p className="text-muted-foreground max-w-md">
+            Start an AI-powered interview session right now and practice with realistic questions and instant feedback.
+          </p>
+          <Button nativeButton={false} size="lg" render={<Link href="/dashboard/session/new" />}>
+            Start new session
+          </Button>
+        </div>
+      ) : (
+        <div className="bg-card border border-border rounded-xl p-6 space-y-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold">Recent sessions</h2>
+            <Link href="/dashboard/sessions" className="text-sm text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+              View all sessions <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <SessionsTable sessions={(recentSessions as Session[]) || []} />
+        </div>
+      )}
+    </div>
   )
 }
