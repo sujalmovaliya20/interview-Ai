@@ -1,0 +1,51 @@
+name: Release Electron App
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: cd electron && npm ci --ignore-scripts
+      - run: cd electron && npm run build
+        env:
+          APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          SERVER_URL: ${{ secrets.NEXT_PUBLIC_SOCKET_URL }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: electron/out/make/**/*.exe
+
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: cd electron && npm ci
+      - run: cd electron && npm run build
+        env:
+          APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+          SERVER_URL: ${{ secrets.NEXT_PUBLIC_SOCKET_URL }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac-build
+          path: electron/out/make/**/*.dmg
+
+  release:
+    needs: [build-windows, build-mac]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            windows-build/**/*.exe
+            mac-build/**/*.dmg
+          generate_release_notes: true

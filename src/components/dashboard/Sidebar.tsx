@@ -114,7 +114,11 @@ export function Sidebar({ user, isMobile = false, onNavigate }: { user: { email:
   )
 
   if (isMobile) {
-    return content
+    return (
+      <aside className="flex flex-col h-full w-full bg-background">
+        {content}
+      </aside>
+    )
   }
 
   return (

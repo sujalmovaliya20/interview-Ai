@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+Thumbs.db
 
 # debug
 npm-debug.log*
@@ -30,9 +31,16 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Environment files — NEVER commit
+.env
 .env.local
+.env.production
+.env*.local
+backend/server/.env
+backend/server/.env.production
+backend/services/transcription/.env
+backend/services/transcription/.env.production
+electron/.env
 
 # vercel
 .vercel
@@ -40,3 +48,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Build artifacts
+dist/
+backend/server/dist/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Electron
+electron/out/
+electron/.webpack/
+
+# Agent and temporary files
+.agents/
+graphify-out/
+temp_labels.py
+temp_report.py
+test_db.js
+temp.html
+

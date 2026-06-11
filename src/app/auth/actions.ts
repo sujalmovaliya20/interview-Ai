@@ -21,11 +21,16 @@ export async function signIn(prevState: any, formData: FormData) {
   const supabase = await createClient()
 
   const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const isDesktop = formData.get('desktop') === 'true'
+
+  const emailRedirectTo = isDesktop 
+    ? `${origin}/auth/callback?next=/auth/desktop`
+    : `${origin}/auth/callback`
 
   const { error } = await supabase.auth.signInWithOtp({
     email: validatedFields.data.email,
     options: {
-      emailRedirectTo: `${origin}/auth/callback`,
+      emailRedirectTo,
     },
   })
 

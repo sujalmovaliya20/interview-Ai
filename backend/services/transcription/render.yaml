@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: interview-ai-transcription
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PORT
+        value: 8000
+      - key: GROQ_API_KEY
+        fromSecret: GROQ_API_KEY
+      - key: NVIDIA_API_KEY
+        fromSecret: NVIDIA_API_KEY
+      - key: DEEPGRAM_API_KEY
+        fromSecret: DEEPGRAM_API_KEY
+      - key: SUPABASE_URL
+        fromSecret: SUPABASE_URL
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        fromSecret: SUPABASE_SERVICE_ROLE_KEY
+      - key: REDIS_URL
+        fromSecret: REDIS_URL
+      - key: WEBHOOK_SECRET
+        fromSecret: WEBHOOK_SECRET
+    healthCheckPath: /health

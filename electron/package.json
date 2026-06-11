@@ -1,0 +1,36 @@
+{
+  "name": "interview-ai-overlay",
+  "version": "1.0.0",
+  "description": "AI Interview Assistant Overlay",
+  "productName": "SystemHelper",
+  "main": ".webpack/main",
+  "scripts": {
+    "start": "electron-forge start",
+    "build": "electron-forge make",
+    "package": "electron-forge package",
+    "dev": "electron-forge start",
+    "register-protocol": "node scripts/register-protocol-win.js",
+    "postinstall": "node scripts/register-protocol-win.js"
+  },
+  "dependencies": {
+    "electron-log": "^5.4.4",
+    "electron-squirrel-startup": "^1.0.0",
+    "electron-updater": "^6.1.8",
+    "socket.io-client": "^4.7.5"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.4.0",
+    "@electron-forge/maker-dmg": "^7.4.0",
+    "@electron-forge/maker-squirrel": "^7.4.0",
+    "@electron-forge/maker-zip": "^7.4.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.4.0",
+    "@electron-forge/plugin-webpack": "^7.4.0",
+    "@electron-forge/shared-types": "^7.11.2",
+    "@electron/rebuild": "^3.6.0",
+    "css-loader": "^7.1.2",
+    "electron": "^31.0.0",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.4.5"
+  }
+}
