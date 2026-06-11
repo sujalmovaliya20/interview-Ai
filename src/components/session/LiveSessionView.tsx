@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSessionStore } from '@/store/sessionStore'
 import { useTimer } from '@/hooks/useTimer'
@@ -58,6 +58,62 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
 
   const [hasStarted, setHasStarted] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
+
+  // Mobile draggable panels state
+  const [splitRatio, setSplitRatio] = useState(50)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  const handleTouchStart = () => setIsDragging(true)
+  const handleMouseDown = () => setIsDragging(true)
+
+  const handleDrag = useCallback((clientY: number) => {
+    if (!containerRef.current) return
+    const rect = containerRef.current.getBoundingClientRect()
+    const relativeY = clientY - rect.top
+    const percentage = (relativeY / rect.height) * 100
+    // Clamp height percentage between 15% and 80%
+    const clamped = Math.max(15, Math.min(80, percentage))
+    setSplitRatio(clamped)
+  }, [])
+
+  useEffect(() => {
+    if (!isDragging) return
+
+    const handleMouseMove = (e: MouseEvent) => {
+      handleDrag(e.clientY)
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        handleDrag(e.touches[0].clientY)
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    window.addEventListener('touchmove', handleTouchMove, { passive: true })
+    window.addEventListener('touchend', handleMouseUp)
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchend', handleMouseUp)
+    }
+  }, [isDragging, handleDrag])
 
   // Credit Deduction Interval (0.5 every 30 mins)
   useEffect(() => {
@@ -208,12 +264,30 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
         onBack={() => router.push('/dashboard')}
       />
 
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
-        <div className="w-full md:w-[40%] border-r h-[50%] md:h-full bg-card/50 flex flex-col">
+      <div 
+        ref={containerRef} 
+        className={`flex-1 flex flex-col md:flex-row overflow-hidden relative ${isDragging ? 'select-none' : ''}`}
+      >
+        <div 
+          className="w-full md:w-[40%] border-r bg-card/50 flex flex-col overflow-hidden"
+          style={isMobile ? { height: `${splitRatio}%` } : undefined}
+        >
           <TranscriptPanel transcriptBlocks={transcriptBlocks} status={status} />
         </div>
         
-        <div className="w-full md:w-[60%] h-[50%] md:h-full bg-card flex flex-col">
+        {/* Draggable Divider Handle for Mobile */}
+        <div 
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+          className="md:hidden h-3 bg-border hover:bg-primary/20 active:bg-primary/40 cursor-ns-resize flex items-center justify-center touch-none select-none z-10 transition-colors py-0.5"
+        >
+          <div className="w-12 h-1 rounded-full bg-muted-foreground/30 hover:bg-muted-foreground/50 transition-colors" />
+        </div>
+
+        <div 
+          className="w-full md:w-[60%] bg-card flex flex-col overflow-hidden"
+          style={isMobile ? { height: `${100 - splitRatio}%` } : undefined}
+        >
           <AnswerPanel 
             answerBlocks={answerBlocks} 
             status={status} 
