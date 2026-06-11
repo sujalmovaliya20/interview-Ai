@@ -6,14 +6,13 @@ export async function GET(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ sessionId: null }, { status: 401 })
 
-  const { data } = await supabase
+  const { data } = await (supabase as any)
     .from('sessions')
     .select('id')
     .eq('user_id', user.id)
     .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(1)
-    .single()
 
-  return NextResponse.json({ sessionId: data?.id || null })
+  return NextResponse.json({ sessionId: data?.[0]?.id || null })
 }
