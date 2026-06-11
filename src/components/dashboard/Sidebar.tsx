@@ -109,8 +109,12 @@ export function Sidebar({ user, isMobile = false, onNavigate }: { user: { email:
     </div>
   )
 
-  if (pathname.startsWith('/dashboard/session/')) {
-    return null
+  if (isMobile) {
+    return (
+      <aside className="flex flex-col h-full w-full bg-background">
+        {content}
+      </aside>
+    )
   }
 
   return (

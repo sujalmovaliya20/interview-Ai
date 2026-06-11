@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { signIn } from '@/app/auth/actions'
+import { useElectronBridge } from '@/hooks/useElectronBridge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,8 +25,30 @@ function SubmitButton() {
   )
 }
 
-export function SignInForm() {
+export function SignInForm({ isDesktop }: { isDesktop?: boolean }) {
   const [state, formAction] = useActionState(signIn, initialState as any)
+  const { isElectron } = useElectronBridge()
+
+  if (isElectron) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold">Sign in to InterviewAI</CardTitle>
+          <CardDescription>
+            For security, please sign in using your regular web browser.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            className="w-full" 
+            onClick={() => window.electronAPI.openExternal(window.location.origin + '/auth/signin?desktop=true')}
+          >
+            Open in Browser
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
 
   if (state?.success) {
     return (
@@ -49,6 +72,7 @@ export function SignInForm() {
       </CardHeader>
       <CardContent>
         <form action={formAction} className="space-y-4">
+          <input type="hidden" name="desktop" value={isDesktop ? 'true' : 'false'} />
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input

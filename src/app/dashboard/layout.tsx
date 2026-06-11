@@ -3,6 +3,7 @@ import { Header } from '@/components/dashboard/Header'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Profile } from '@/types'
+import { DashboardLayoutWrapper } from './DashboardLayoutWrapper'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -27,14 +28,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar user={safeUser} />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Header title="Dashboard" user={safeUser} />
-        <main className="flex-1 overflow-y-auto bg-muted/30">
-          {children}
-        </main>
-      </div>
-    </div>
+    <DashboardLayoutWrapper 
+      sidebar={<Sidebar user={safeUser} />} 
+      header={<Header title="Dashboard" user={safeUser} />}
+    >
+      {children}
+    </DashboardLayoutWrapper>
   )
 }

@@ -8,6 +8,9 @@ export interface TranscriptBlock {
   isQuestion: boolean
   timestamp: number
   isFinal: boolean
+  provider: 'whisper' | 'deepgram' | null
+  language: string | null
+  latency_ms: number | null
 }
 
 export interface AnswerBlock {
@@ -15,12 +18,12 @@ export interface AnswerBlock {
   text: string
   isStreaming: boolean
   timestamp: number
-  modelUsed: 'claude' | 'gpt-5' | string
+  modelUsed: string
 }
 
 export interface SessionState {
   sessionId: string | null
-  status: 'idle' | 'joining' | 'active' | 'paused' | 'ending' | 'ended'
+  status: 'idle' | 'joining' | 'active' | 'paused' | 'ending' | 'ended' | 'reconnecting' | 'error'
   model: 'claude' | 'gpt-5'
   language: string
   transcriptBlocks: TranscriptBlock[]
@@ -38,7 +41,7 @@ export interface SessionState {
   setStatus: (status: SessionState['status']) => void
   setModel: (model: SessionState['model']) => void
   setLanguage: (lang: string) => void
-  appendTranscriptDelta: (payload: { text: string; isFinal: boolean; timestamp: number }) => void
+  appendTranscriptDelta: (payload: { text: string; isFinal: boolean; timestamp: number; provider?: 'whisper' | 'deepgram' | null; language?: string | null; latency_ms?: number | null }) => void
   appendAnswerDelta: (payload: { id: string; text: string; isStreaming: boolean; modelUsed: string }) => void
   finalizeAnswer: (id: string) => void
   setAudioLevel: (level: number) => void
@@ -90,6 +93,9 @@ export const useSessionStore = create<SessionState>((set) => ({
       lastBlock.text = payload.text
       lastBlock.isFinal = payload.isFinal
       lastBlock.timestamp = payload.timestamp
+      lastBlock.provider = payload.provider || null
+      lastBlock.language = payload.language || null
+      lastBlock.latency_ms = payload.latency_ms || null
       if (payload.isFinal) {
         lastBlock.isQuestion = isQuestionText(payload.text)
       }
@@ -99,7 +105,10 @@ export const useSessionStore = create<SessionState>((set) => ({
         text: payload.text,
         isQuestion: payload.isFinal ? isQuestionText(payload.text) : false,
         timestamp: payload.timestamp,
-        isFinal: payload.isFinal
+        isFinal: payload.isFinal,
+        provider: payload.provider || null,
+        language: payload.language || null,
+        latency_ms: payload.latency_ms || null
       })
     }
     return { transcriptBlocks: blocks }

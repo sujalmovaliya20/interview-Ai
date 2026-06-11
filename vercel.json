@@ -1,0 +1,19 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "installCommand": "npm ci",
+  "outputDirectory": ".next",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(self), geolocation=()" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" }
+      ]
+    }
+  ],
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- src/ public/ next.config.ts package.json"
+}

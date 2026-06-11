@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 
 const schema = z.object({
-  model: z.enum(['claude', 'gpt-5']),
+  model: z.enum(['abacusai/dracarys-llama-3.1-70b-instruct', 'mistralai/mistral-large']),
   language: z.string().min(2),
   extraContext: z.string().max(500).optional()
 })
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
         model,
         language,
         status: 'active',
-        // In reality, extraContext would be saved somewhere, perhaps in a session_metadata table
+        extra_context: extraContext || null
       })
       .select('id')
       .single()

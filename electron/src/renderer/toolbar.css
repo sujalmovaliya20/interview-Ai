@@ -1,0 +1,101 @@
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  background: transparent;
+  overflow: hidden;
+  width: 520px;
+  height: 44px;
+  -webkit-app-region: no-drag;
+  user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+}
+
+#toolbar-root {
+  width: 520px;
+  height: 44px;
+  /* VISIBLE dark background — NOT transparent */
+  background: rgba(18, 18, 18, 0.92) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 22px;
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 4px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+  /* Ensure it is not hidden */
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Icon buttons */
+.tb-icon-btn {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  transition: background 0.15s, color 0.15s;
+}
+.tb-icon-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+.tb-icon-btn.active { color: #ef4444; }  /* red when recording */
+
+/* Divider */
+.tb-divider {
+  width: 1px; height: 20px;
+  background: rgba(255,255,255,0.12);
+  margin: 0 2px;
+}
+
+/* Tab buttons */
+.tb-tabs { display: flex; gap: 2px; }
+.tb-tab {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.tb-tab:hover { background: rgba(255,255,255,0.08); color: white; }
+.tb-tab.active {
+  background: rgba(255,255,255,0.13);
+  color: white;
+}
+
+/* Timer */
+.tb-timer {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  min-width: 42px;
+  text-align: center;
+}
+.tb-timer.warning { color: #f59e0b; }
+.tb-timer.danger { color: #ef4444; }
+
+/* Right controls */
+.tb-right { margin-left: auto; display: flex; align-items: center; gap: 2px; }
+
+/* Spacer */
+.tb-spacer { flex: 1; }
+
+/* Connection dot */
+.tb-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  margin-right: 4px;
+}
+.tb-dot.disconnected { background: #6b7280; }
+.tb-dot.connecting { background: #f59e0b; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }

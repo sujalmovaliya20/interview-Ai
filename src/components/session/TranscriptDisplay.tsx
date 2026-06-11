@@ -67,7 +67,21 @@ export function TranscriptDisplay() {
                 : 'text-muted-foreground'
             } ${!block.isFinal ? 'italic opacity-70' : ''}`}
           >
-            <p className="whitespace-pre-wrap leading-relaxed">{block.text}</p>
+            <p className="whitespace-pre-wrap leading-relaxed">
+              {block.text}
+              {block.isFinal && process.env.NODE_ENV === 'development' && block.provider && (
+                <span 
+                  className={`ml-2 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium border
+                    ${block.provider === 'whisper' 
+                      ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800' 
+                      : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800'
+                    }`}
+                  title={`Transcribed by ${block.provider === 'whisper' ? 'Whisper' : 'Deepgram (Fallback)'} in ${block.latency_ms?.toFixed(0)}ms`}
+                >
+                  {block.provider === 'whisper' ? 'W' : 'D'}
+                </span>
+              )}
+            </p>
           </div>
         ))}
       </div>

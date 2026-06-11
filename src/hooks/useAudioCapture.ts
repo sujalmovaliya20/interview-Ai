@@ -5,20 +5,23 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 interface UseAudioCaptureProps {
   onChunk: (buffer: ArrayBuffer) => void
   enabled: boolean
+  electronSourceId?: string | null
 }
 
-export function useAudioCapture({ onChunk, enabled }: UseAudioCaptureProps) {
+export function useAudioCapture({ onChunk, enabled, electronSourceId }: UseAudioCaptureProps) {
   const [isRecording, setIsRecording] = useState(false)
+  const isRecordingRef = useRef(false)
   const [isPaused, setIsPaused] = useState(false)
+  const isPausedRef = useRef(false)
   const [audioLevel, setAudioLevel] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [permissionState, setPermissionState] = useState<'prompt' | 'granted' | 'denied'>('prompt')
 
   const contextRef = useRef<AudioContext | null>(null)
-  const streamRef = useRef<MediaStream | null>(null)
+  const streamsRef = useRef<MediaStream[]>([])
   const processorRef = useRef<ScriptProcessorNode | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
-  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null)
+  const sourceNodesRef = useRef<MediaStreamAudioSourceNode[]>([])
   const animationRef = useRef<number>(0)
   const sampleBufferRef = useRef<Float32Array[]>([])
   const accumulatedSamplesRef = useRef<number>(0)
@@ -44,16 +47,58 @@ export function useAudioCapture({ onChunk, enabled }: UseAudioCaptureProps) {
   const start = useCallback(async () => {
     try {
       setError(null)
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          sampleRate: SAMPLE_RATE,
-        },
-        video: false
-      })
+      let desktopStream: MediaStream | null = null
+      let micStream: MediaStream | null = null
 
-      streamRef.current = stream
+      // Always try to capture microphone (interviewee)
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: { ideal: SAMPLE_RATE }
+          },
+          video: false
+        })
+      } catch (err: any) {
+        console.warn('Constrained mic access failed, trying fallback:', err)
+        try {
+          // Fallback: ask for bare minimum to bypass driver crashes
+          micStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: false
+          })
+        } catch (fallbackErr: any) {
+          console.error('Fallback mic access failed:', fallbackErr)
+          throw fallbackErr // If even this fails, it's truly blocked
+        }
+      }
+
+      // If running in Electron with system audio source, also capture desktop (interviewer)
+      if (electronSourceId) {
+        try {
+          desktopStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              // @ts-ignore — Electron-specific constraint
+              mandatory: {
+                chromeMediaSource: 'desktop',
+                chromeMediaSourceId: electronSourceId
+              }
+            },
+            video: false
+          })
+        } catch (err) {
+          console.warn('Desktop audio access failed:', err)
+        }
+      }
+
+      if (!micStream && !desktopStream) {
+        throw new Error('NO_AUDIO_SOURCES')
+      }
+
+      if (micStream) streamsRef.current.push(micStream)
+      if (desktopStream) streamsRef.current.push(desktopStream)
+
       setPermissionState('granted')
 
       const AudioContextCtor = window.AudioContext || (window as any).webkitAudioContext
@@ -65,20 +110,35 @@ export function useAudioCapture({ onChunk, enabled }: UseAudioCaptureProps) {
       
       contextRef.current = context
 
-      const source = context.createMediaStreamSource(stream)
-      sourceRef.current = source
-
       const analyser = context.createAnalyser()
       analyser.fftSize = 256
-      source.connect(analyser)
       analyserRef.current = analyser
+
+      // Mixer node to safely combine streams for the processor
+      const mixerNode = context.createGain()
+      mixerNode.gain.value = 1.0
+
+      // Connect both streams to the analyser to mix them
+      if (micStream) {
+        const micSource = context.createMediaStreamSource(micStream)
+        micSource.connect(mixerNode)
+        micSource.connect(analyser)
+        sourceNodesRef.current.push(micSource)
+      }
+      
+      if (desktopStream) {
+        const desktopSource = context.createMediaStreamSource(desktopStream)
+        desktopSource.connect(mixerNode)
+        desktopSource.connect(analyser)
+        sourceNodesRef.current.push(desktopSource)
+      }
 
       // ScriptProcessor is deprecated but easiest for 16kHz cross-browser
       const processor = context.createScriptProcessor(4096, 1, 1)
       processorRef.current = processor
 
       processor.onaudioprocess = (e) => {
-        if (!isRecording || isPaused) return
+        if (!isRecordingRef.current || isPausedRef.current) return
 
         const inputData = e.inputBuffer.getChannelData(0)
         // clone the array because underlying buffer is reused
@@ -103,18 +163,21 @@ export function useAudioCapture({ onChunk, enabled }: UseAudioCaptureProps) {
         }
       }
 
+      // Gain node for audio process connection
       const gainNode = context.createGain()
       gainNode.gain.value = 0
 
-      source.connect(processor)
+      mixerNode.connect(processor)
       processor.connect(gainNode)
       gainNode.connect(context.destination)
 
       setIsRecording(true)
+      isRecordingRef.current = true
       setIsPaused(false)
+      isPausedRef.current = false
 
       const updateLevel = () => {
-        if (analyserRef.current && isRecording && !isPaused) {
+        if (analyserRef.current && isRecordingRef.current && !isPausedRef.current) {
           const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount)
           analyserRef.current.getByteFrequencyData(dataArray)
           
@@ -125,7 +188,7 @@ export function useAudioCapture({ onChunk, enabled }: UseAudioCaptureProps) {
           const average = sum / dataArray.length
           const level = Math.min(100, Math.round((average / 255) * 100))
           setAudioLevel(level)
-        } else if (isPaused) {
+        } else if (isPausedRef.current) {
           setAudioLevel(0)
         }
         
@@ -133,37 +196,40 @@ export function useAudioCapture({ onChunk, enabled }: UseAudioCaptureProps) {
       }
       
       updateLevel()
+      return true
 
     } catch (err: any) {
-      console.error('Mic error:', err)
-      if (err.name === 'NotAllowedError') {
+      console.error('Audio capture error:', err)
+      if (err?.name === 'NotAllowedError') {
         setError('MICROPHONE_DENIED')
         setPermissionState('denied')
-      } else if (err.name === 'NotFoundError') {
+      } else if (err?.name === 'NotFoundError' || err?.message === 'NO_AUDIO_SOURCES') {
         setError('NO_MICROPHONE')
+      } else if (err?.name === 'NotReadableError') {
+        setError('MICROPHONE_IN_USE') // Hardware error / exclusive use
       } else {
         setError('UNKNOWN_ERROR')
       }
+      return false
     }
-  }, [onChunk, isRecording, isPaused])
+  }, [onChunk, electronSourceId])
 
   const stop = useCallback(() => {
     if (processorRef.current) {
       processorRef.current.disconnect()
       processorRef.current = null
     }
-    if (sourceRef.current) {
-      sourceRef.current.disconnect()
-      sourceRef.current = null
-    }
+    sourceNodesRef.current.forEach(source => source.disconnect())
+    sourceNodesRef.current = []
+    
     if (analyserRef.current) {
       analyserRef.current.disconnect()
       analyserRef.current = null
     }
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop())
-      streamRef.current = null
-    }
+    
+    streamsRef.current.forEach(stream => stream.getTracks().forEach(track => track.stop()))
+    streamsRef.current = []
+    
     if (contextRef.current && contextRef.current.state !== 'closed') {
       contextRef.current.close()
       contextRef.current = null
@@ -173,7 +239,9 @@ export function useAudioCapture({ onChunk, enabled }: UseAudioCaptureProps) {
     }
 
     setIsRecording(false)
+    isRecordingRef.current = false
     setIsPaused(false)
+    isPausedRef.current = false
     setAudioLevel(0)
     sampleBufferRef.current = []
     accumulatedSamplesRef.current = 0
@@ -183,6 +251,7 @@ export function useAudioCapture({ onChunk, enabled }: UseAudioCaptureProps) {
     if (contextRef.current && contextRef.current.state === 'running') {
       contextRef.current.suspend()
       setIsPaused(true)
+      isPausedRef.current = true
     }
   }, [])
 
@@ -190,6 +259,7 @@ export function useAudioCapture({ onChunk, enabled }: UseAudioCaptureProps) {
     if (contextRef.current && contextRef.current.state === 'suspended') {
       contextRef.current.resume()
       setIsPaused(false)
+      isPausedRef.current = false
     }
   }, [])
 

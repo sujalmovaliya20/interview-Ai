@@ -1,0 +1,27 @@
+name: Deploy Backend to Render
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+
+jobs:
+  deploy-node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trigger Render deploy — Node server
+        run: |
+          curl -X POST \
+            "https://api.render.com/deploy/${{ secrets.RENDER_NODE_SERVICE_ID }}?key=${{ secrets.RENDER_NODE_DEPLOY_KEY }}" \
+            -d ''
+
+  deploy-fastapi:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trigger Render deploy — FastAPI
+        run: |
+          curl -X POST \
+            "https://api.render.com/deploy/${{ secrets.RENDER_FASTAPI_SERVICE_ID }}?key=${{ secrets.RENDER_FASTAPI_DEPLOY_KEY }}" \
+            -d ''

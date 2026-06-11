@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: interview-ai-server
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: SUPABASE_URL
+        fromSecret: SUPABASE_URL
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        fromSecret: SUPABASE_SERVICE_ROLE_KEY
+      - key: REDIS_URL
+        fromSecret: REDIS_URL
+      - key: NEXT_PUBLIC_APP_URL
+        fromSecret: NEXT_PUBLIC_APP_URL
+      - key: ALLOWED_ORIGIN
+        fromSecret: ALLOWED_ORIGIN
+    healthCheckPath: /health

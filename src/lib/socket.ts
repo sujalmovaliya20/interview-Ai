@@ -1,8 +1,9 @@
 import { io, Socket } from 'socket.io-client'
 
 export interface ServerToClientEvents {
-  transcript_delta: (payload: { text: string; isFinal: boolean; timestamp: number }) => void
-  answer_delta: (payload: { id: string; text: string; isStreaming: boolean; modelUsed: string }) => void
+  transcript_delta: (payload: { text: string; isFinal: boolean; timestamp: number; provider?: 'whisper' | 'deepgram'; language?: string; latency_ms?: number }) => void
+  answer_delta: (payload: { id: string; text: string; isStreaming: boolean; modelUsed: string; timestamp?: number }) => void
+  answer_done: (payload: { id: string; isStreaming: boolean; timestamp?: number }) => void
   session_joined: (payload: { sessionId: string; joinedAt: number }) => void
   session_ended: (payload: { sessionId: string; duration: number }) => void
   session_error: (payload: { code: string; message: string }) => void
@@ -30,7 +31,7 @@ export function createSocket(token: string): Socket<ServerToClientEvents, Client
     return socketInstance
   }
 
-  const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+  const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001'
 
   socketInstance = io(SOCKET_URL, {
     auth: { token },

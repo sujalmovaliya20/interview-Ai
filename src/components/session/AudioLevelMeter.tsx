@@ -2,11 +2,10 @@
 
 interface AudioLevelMeterProps {
   level: number // 0 to 100
-  isRecording: boolean
-  isPaused: boolean
+  isActive: boolean
 }
 
-export function AudioLevelMeter({ level, isRecording, isPaused }: AudioLevelMeterProps) {
+export function AudioLevelMeter({ level, isActive }: AudioLevelMeterProps) {
   // We use 20 bars
   const BARS = 20
 
@@ -24,7 +23,7 @@ export function AudioLevelMeter({ level, isRecording, isPaused }: AudioLevelMete
         let heightPercent = 10
         let colorClass = 'bg-muted'
         
-        if (isRecording && !isPaused) {
+        if (isActive) {
           // Add some randomization to individual bars based on the general level
           // A bit of sine wave logic for spectrum-like shape
           const factor = Math.sin((i / BARS) * Math.PI) 
