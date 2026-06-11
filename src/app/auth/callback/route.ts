@@ -16,7 +16,11 @@ export async function GET(request: Request) {
         return NextResponse.redirect(`${origin}${next}`)
       }
       return NextResponse.redirect(`${origin}/dashboard`)
+    } else {
+      console.error('Supabase callback exchange error:', error.message, error)
     }
+  } else {
+    console.warn('Supabase callback accessed without code query parameter')
   }
 
   // return the user to an error page with instructions
