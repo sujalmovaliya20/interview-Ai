@@ -82,6 +82,20 @@ server.listen(PORT, () => {
   logger.info(`Server listening on port ${PORT}`)
 })
 
+// Keep-alive ping for the Transcription Service on Render Free Tier
+const TRANSCRIPTION_URL = process.env.NEXT_PUBLIC_TRANSCRIPTION_URL || process.env.TRANSCRIPTION_SERVICE_URL
+if (TRANSCRIPTION_URL) {
+  logger.info(`Starting keep-alive ping for transcription service at: ${TRANSCRIPTION_URL}`)
+  setInterval(async () => {
+    try {
+      const res = await fetch(`${TRANSCRIPTION_URL}/health`)
+      logger.info(`Keep-alive ping to transcription service. Status: ${res.status}`)
+    } catch (err: any) {
+      logger.error(`Keep-alive ping failed: ${err.message}`)
+    }
+  }, 5 * 60 * 1000) // Ping every 5 minutes
+}
+
 // Graceful shutdown
 const shutdown = async () => {
   logger.info('Shutting down server...')
