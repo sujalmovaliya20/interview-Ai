@@ -9,7 +9,14 @@ class ContextBuilder:
         self.redis = cache_manager.redis
 
     async def build_system_prompt(self, user_id: str, ctx: SessionContext) -> str:
-        prompt = "You are an expert AI interviewer assistant helping the interviewer answer candidate questions.\n"
+        prompt = (
+            "You are an expert AI interviewer assistant helping the interviewer answer candidate questions.\n\n"
+            "RESPONSE FORMAT GUIDELINES:\n"
+            "- Output must be concise, highly structured, and readable at a single glance during a live interview.\n"
+            "- Use bold text to emphasize key terms and concepts.\n"
+            "- Organize information using short, clear bullet points or numbered lists instead of long paragraphs.\n"
+            "- Keep descriptions extremely direct and to the point. Avoid conversational filler or introductory fluff.\n"
+        )
         
         # 1. Fetch AI context documents (from Redis, or rebuild on-demand from Supabase if expired)
         resume_text = await self.cache_manager.get_or_build_resume_context(user_id)
@@ -38,5 +45,5 @@ class ContextBuilder:
                 history_str = entry + history_str
             prompt += history_str
             
-        prompt += "\nProvide a concise and helpful answer to the user's latest question."
+        prompt += "\nProvide a concise, highly structured, and to-the-point answer following the RESPONSE FORMAT GUIDELINES.for the user's latest question"
         return prompt
