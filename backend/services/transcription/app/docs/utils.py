@@ -1,4 +1,7 @@
-import tiktoken
+try:
+    import tiktoken
+except ImportError:
+    tiktoken = None
 
 def count_tokens(text: str, model: str = "cl100k_base") -> int:
     """Count tokens using tiktoken (default cl100k_base for GPT/Llama approximations)."""

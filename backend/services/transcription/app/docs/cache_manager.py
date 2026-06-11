@@ -73,3 +73,52 @@ class DocumentCacheManager:
             self.RESUME_KEY.format(user_id=user_id),
             self.DOCS_KEY.format(user_id=user_id)
         )
+
+    async def get_or_build_resume_context(self, user_id: str) -> str:
+        key = self.RESUME_KEY.format(user_id=user_id)
+        cached = await self.redis.get(key)
+        if cached is not None:
+            return cached.decode()
+
+        # If not cached, fetch from Supabase
+        import asyncio
+        loop = asyncio.get_event_loop()
+        def _fetch():
+            res = self.supabase_client.table('documents')\
+                .select('extracted_text')\
+                .eq('user_id', user_id)\
+                .eq('is_resume', True)\
+                .not_.is_('extracted_text', 'null')\
+                .order('created_at', desc=True)\
+                .limit(1)\
+                .execute()
+            return res.data if hasattr(res, 'data') else res.get('data', [])
+
+        try:
+            data = await loop.run_in_executor(None, _fetch)
+            if data and data[0].get('extracted_text'):
+                text = data[0]['extracted_text']
+                # Update cache
+                truncated = truncate_to_tokens(text, 1500)
+                await self.redis.set(key, truncated, ex=self.CACHE_TTL)
+                return truncated
+        except Exception as e:
+            self.logger.error("get_or_build_resume_context_failed", user_id=user_id, error=str(e))
+        return ""
+
+    async def get_or_build_docs_context(self, user_id: str) -> str:
+        key = self.DOCS_KEY.format(user_id=user_id)
+        cached = await self.redis.get(key)
+        if cached is not None:
+            return cached.decode()
+
+        # Rebuild docs cache
+        try:
+            await self.update_docs_cache(user_id)
+            cached2 = await self.redis.get(key)
+            if cached2 is not None:
+                return cached2.decode()
+        except Exception as e:
+            self.logger.error("get_or_build_docs_context_failed", user_id=user_id, error=str(e))
+        return ""
+

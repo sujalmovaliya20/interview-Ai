@@ -12,14 +12,19 @@ from app.answer.nvidia_client import NvidiaLLMClient, NvidiaRateLimitError, Nvid
 from app.answer.context_builder import ContextBuilder
 from app.answer.question_detector import QuestionDetector
 
+from typing import Any
+
 class AnswerEngine:
-  def __init__(self, redis_client: redis.Redis):
+  def __init__(self, redis_client: redis.Redis, supabase_client: Any):
     self.redis = redis_client
     # Primary: Llama 3.1 70B
     self.primary = NvidiaLLMClient(settings.nvidia_primary_model)
     # Fallback: Mistral Large (if primary rate-limited)
     self.fallback = NvidiaLLMClient(settings.nvidia_fallback_model)
-    self.context_builder = ContextBuilder(redis_client)
+    
+    from app.docs.cache_manager import DocumentCacheManager
+    self.cache_manager = DocumentCacheManager(redis_client, supabase_client)
+    self.context_builder = ContextBuilder(self.cache_manager)
     self.detector = QuestionDetector()
     self.logger = get_logger("answer_engine")
     self._history: Dict[str, List[QAPair]] = {}

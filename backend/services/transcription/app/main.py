@@ -35,8 +35,8 @@ async def lifespan(app: FastAPI):
     logger.info("app_starting", worker_count=settings.worker_count)
     state.redis = redis.from_url(settings.redis_url)
     state.engine = TranscriptionEngine()
-    state.answer_engine = AnswerEngine(state.redis)
     state.supabase_client = supabase.create_client(settings.supabase_url, settings.supabase_service_role_key)
+    state.answer_engine = AnswerEngine(state.redis, state.supabase_client)
     state.doc_processor = DocumentProcessor(state.redis, state.supabase_client)
     
     # Store doc_processor directly on app.state so the webhook router can access it

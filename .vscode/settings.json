@@ -1,0 +1,3 @@
+{
+  "python.defaultInterpreterPath": "backend/services/transcription/.venv/Scripts/python.exe"
+}

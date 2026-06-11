@@ -1,4 +1,7 @@
-import tiktoken
+try:
+    import tiktoken
+except ImportError:
+    tiktoken = None
 
 def count_tokens(text: str) -> int:
     try:
