@@ -20,13 +20,33 @@ export function registerSessionHandlers(io: Server, socket: Socket, redisSubscri
         return socket.emit('session_error', { message: 'Invalid session ID format' })
       }
 
-      // BYPASS SUPABASE FOR LOCAL DEV
-      const session = {
+      // Load session details from Supabase, or fall back to defaults for local dev
+      let session = {
         status: 'active',
         language: 'en',
         extra_context: '',
         role_hint: '',
         user_id: userId
+      }
+
+      try {
+        const { data: dbSession, error: dbError } = await (supabase as any)
+          .from('sessions')
+          .select('status, language, extra_context, role_hint, user_id')
+          .eq('id', sessionId)
+          .single()
+
+        if (!dbError && dbSession) {
+          session = {
+            status: dbSession.status || 'active',
+            language: dbSession.language || 'en',
+            extra_context: dbSession.extra_context || '',
+            role_hint: dbSession.role_hint || '',
+            user_id: dbSession.user_id || userId
+          }
+        }
+      } catch (err) {
+        logger.warn(err, 'Failed to fetch session from Supabase, using defaults')
       }
 
       const roomName = `session:${sessionId}`
