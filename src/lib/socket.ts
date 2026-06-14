@@ -35,7 +35,8 @@ export function createSocket(token: string): Socket<ServerToClientEvents, Client
 
   socketInstance = io(SOCKET_URL, {
     auth: { token },
-    transports: ['websocket', 'polling'],
+    transports: ['polling', 'websocket'], // Start with polling, upgrade to websocket
+    timeout: 60000,                      // 60s timeout to tolerate cold starts
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,

@@ -234,16 +234,52 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
 
       {/* OVERLAY for starting */}
       {!hasStarted && status !== 'ended' && status !== 'error' && (
-        <div className="absolute inset-0 z-40 bg-background/95 backdrop-blur-md flex flex-col items-center justify-center">
-          <div className="text-center max-w-md p-6">
-            <h2 className="text-2xl font-bold mb-2">Ready when you are</h2>
-            <p className="text-muted-foreground mb-8 text-sm">
-              Ensure your microphone is connected and you're in a quiet environment.
-            </p>
-            <Button size="lg" onClick={handleStartSession} className="text-lg px-8 py-6 rounded-full shadow-lg shadow-primary/25 hover:scale-105 transition-transform w-full">
-              <Play className="mr-2 h-5 w-5" /> Start Interview
-            </Button>
-          </div>
+        <div className="absolute inset-0 z-40 bg-background/95 backdrop-blur-md flex flex-col items-center justify-center transition-all duration-500">
+          {!isConnected ? (
+            <div className="text-center max-w-md p-6 flex flex-col items-center animate-fade-in">
+              {/* Connection Loader Icon */}
+              <div className="relative flex items-center justify-center h-36 w-36 mb-8">
+                {/* Sonar Pulsing Rings */}
+                <div className="absolute inset-0 rounded-full bg-primary/10 animate-sonar" style={{ animationDelay: '0s' }} />
+                <div className="absolute inset-0 rounded-full bg-primary/10 animate-sonar" style={{ animationDelay: '1s' }} />
+                <div className="absolute inset-0 rounded-full bg-primary/10 animate-sonar" style={{ animationDelay: '2s' }} />
+                
+                {/* Center Glass Sphere */}
+                <div className="relative flex items-center justify-center h-20 w-20 rounded-full bg-primary/10 border border-primary/20 shadow-2xl shadow-primary/20 backdrop-blur-md">
+                  <div className="relative flex items-center justify-center h-10 w-10">
+                    {/* Spinning loader */}
+                    <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary animate-spin" />
+                    <Play className="h-5 w-5 text-primary/40 animate-pulse" />
+                  </div>
+                </div>
+              </div>
+              
+              <h2 className="text-2xl font-bold mb-3 tracking-tight bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+                Connecting to Server
+              </h2>
+              <p className="text-muted-foreground text-sm max-w-xs leading-relaxed mb-6">
+                Establishing a secure real-time audio connection for your interview.
+              </p>
+              
+              {/* Server Wakeup Info */}
+              <div className="px-4 py-3 rounded-2xl bg-card/60 border border-border/80 shadow-sm max-w-sm flex items-center gap-3">
+                <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                <p className="text-xs text-muted-foreground text-left">
+                  <span className="font-semibold text-foreground">First-time load?</span> The server takes up to 45 seconds to wake up from standby. Please stay on this screen.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center max-w-md p-6 flex flex-col items-center animate-scale-in">
+              <h2 className="text-2xl font-bold mb-2">Ready when you are</h2>
+              <p className="text-muted-foreground mb-8 text-sm">
+                Ensure your microphone is connected and you're in a quiet environment.
+              </p>
+              <Button size="lg" onClick={handleStartSession} className="text-lg px-8 py-6 rounded-full shadow-lg shadow-primary/25 hover:scale-105 transition-transform w-full cursor-pointer">
+                <Play className="mr-2 h-5 w-5" /> Start Interview
+              </Button>
+            </div>
+          )}
         </div>
       )}
 

@@ -36,6 +36,7 @@ yarn-error.log*
 .env.local
 .env.production
 .env*.local
+.env.development
 backend/server/.env
 backend/server/.env.production
 backend/services/transcription/.env
