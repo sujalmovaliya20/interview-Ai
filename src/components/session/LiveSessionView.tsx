@@ -57,6 +57,9 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
   } = controls
 
   const [hasStarted, setHasStarted] = useState(false)
+  const [isPreparing, setIsPreparing] = useState(false)
+  const [prepProgress, setPrepProgress] = useState(0)
+  const [prepStep, setPrepStep] = useState(0)
   const [retryCount, setRetryCount] = useState(0)
 
   // Mobile draggable panels state
@@ -125,13 +128,13 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
           method: 'POST',
         })
         const data = await res.json()
-        
+
         if (res.status === 402) {
           toast.error("You have run out of credits. Ending session.")
           confirmStop()
           return
         }
-        
+
         if (res.ok && data.balance !== undefined) {
           setCreditBalance(data.balance)
         }
@@ -154,12 +157,46 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
     loadCredits()
   }, [supabase, setCreditBalance])
 
+  const startPreparation = () => {
+    setIsPreparing(true)
+    setPrepProgress(0)
+    setPrepStep(0)
+
+    const duration = 20000 // 10 seconds
+    const intervalTime = 50
+    const steps = duration / intervalTime // 200 steps
+    let currentStep = 0
+
+    const timer = setInterval(() => {
+      currentStep++
+      const progress = Math.min(100, Math.round((currentStep / steps) * 100))
+      setPrepProgress(progress)
+
+      // Update steps based on progress thresholds
+      if (progress < 25) {
+        setPrepStep(0) // Initializing AI Speech Engine
+      } else if (progress < 55) {
+        setPrepStep(1) // Calibrating Microphone
+      } else if (progress < 80) {
+        setPrepStep(2) // Optimizing Acoustic Model
+      } else {
+        setPrepStep(3) // Finalizing Connection
+      }
+
+      if (currentStep >= steps) {
+        clearInterval(timer)
+        setHasStarted(true)
+        setIsPreparing(false)
+        startTimer()
+      }
+    }, intervalTime)
+  }
+
   const handleStartSession = async () => {
     if (isConnected && status === 'active' && !audioError) {
       const success = await startAudio()
       if (success) {
-        setHasStarted(true)
-        startTimer()
+        startPreparation()
       } else {
         toast.error('Cannot start: Microphone is either in use by another app (e.g. Zoom) or unavailable.')
       }
@@ -181,7 +218,7 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
     const onTranscript = (payload: any) => appendTranscriptDelta(payload)
     const onAnswer = (payload: any) => appendAnswerDelta(payload)
     const onAnswerDone = (payload: any) => useSessionStore.getState().finalizeAnswer(payload.id)
-    
+
     // We get disconnects, reconnects etc
     const onDisconnect = () => {
       setRetryCount(r => r + 1)
@@ -208,7 +245,7 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
   }, [accessToken, appendTranscriptDelta, appendAnswerDelta, setStatus, status])
 
   const questionsAnswered = transcriptBlocks.filter(b => b.isQuestion).length
-  
+
   const handleTogglePause = () => {
     if (isPaused) {
       handleResume()
@@ -226,16 +263,86 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
 
   return (
     <div className="flex flex-col h-[100dvh] w-full bg-background overflow-hidden relative">
-      <ConnectionBanner 
-        status={status} 
-        retryCount={retryCount} 
-        onRetry={() => window.location.reload()} 
+      <ConnectionBanner
+        status={status}
+        retryCount={retryCount}
+        onRetry={() => window.location.reload()}
       />
 
       {/* OVERLAY for starting */}
       {!hasStarted && status !== 'ended' && status !== 'error' && (
         <div className="absolute inset-0 z-40 bg-background/95 backdrop-blur-md flex flex-col items-center justify-center transition-all duration-500">
-          {!isConnected ? (
+          {isPreparing ? (
+            /* AI Calibration Loader */
+            <div className="text-center max-w-md p-6 flex flex-col items-center animate-fade-in">
+              {/* Circular Progress Indicator with Siri Sound Wave */}
+              <div className="relative flex items-center justify-center h-44 w-44 mb-8">
+                {/* SVG Progress Circle */}
+                <svg className="w-40 h-40 transform -rotate-90 absolute">
+                  <circle cx="80" cy="80" r="72" stroke="currentColor" className="text-muted/15" strokeWidth="4" fill="transparent" />
+                  <circle cx="80" cy="80" r="72" stroke="currentColor" className="text-primary transition-all duration-75" strokeWidth="4" fill="transparent"
+                    strokeDasharray={2 * Math.PI * 72}
+                    strokeDashoffset={2 * Math.PI * 72 * (1 - prepProgress / 100)}
+                    strokeLinecap="round" />
+                </svg>
+                {/* Center Siri-style Sound Wave */}
+                <div className="relative flex items-center justify-center h-28 w-28 rounded-full bg-card border border-border/40 shadow-inner backdrop-blur-sm z-10">
+                  <div className="flex items-center justify-center gap-1.5 h-12">
+                    <div className="w-1 bg-primary/85 rounded-full animate-wave" style={{ animationDelay: '0.1s', minHeight: '12px' }} />
+                    <div className="w-1 bg-primary/95 rounded-full animate-wave" style={{ animationDelay: '0.4s', minHeight: '12px' }} />
+                    <div className="w-1 bg-primary/90 rounded-full animate-wave" style={{ animationDelay: '0.2s', minHeight: '12px' }} />
+                    <div className="w-1 bg-primary/95 rounded-full animate-wave" style={{ animationDelay: '0.6s', minHeight: '12px' }} />
+                    <div className="w-1 bg-primary/85 rounded-full animate-wave" style={{ animationDelay: '0.3s', minHeight: '12px' }} />
+                  </div>
+                </div>
+                {/* Floating percentage label */}
+                <div className="absolute -bottom-2 bg-primary text-primary-foreground font-mono text-xs px-2.5 py-1 rounded-full shadow-md z-20">
+                  {prepProgress}%
+                </div>
+              </div>
+
+              <h2 className="text-2xl font-bold mb-3 tracking-tight bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+                Calibrating Interview Room
+              </h2>
+              <p className="text-muted-foreground text-sm max-w-xs leading-relaxed mb-6">
+                Please wait while we initialize your AI coach and test acoustic levels.
+              </p>
+
+              {/* Progress Checklist */}
+              <div className="w-full max-w-sm space-y-3 p-5 rounded-2xl bg-card/60 border border-border/80 shadow-sm text-left">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Calibration Checklist:</h3>
+
+                <div className="flex items-center gap-3 text-sm">
+                  <div className={`h-5 w-5 rounded-full flex items-center justify-center border text-xs font-semibold transition-all duration-300 ${prepStep > 0 ? 'border-primary bg-primary text-primary-foreground' : prepStep === 0 ? 'border-primary bg-primary/10 text-primary animate-pulse' : 'border-muted text-muted'}`}>
+                    {prepStep > 0 ? '✓' : '1'}
+                  </div>
+                  <span className={prepStep === 0 ? 'font-medium text-foreground' : 'text-muted-foreground'}>Initializing AI Speech Brain</span>
+                </div>
+
+                <div className="flex items-center gap-3 text-sm">
+                  <div className={`h-5 w-5 rounded-full flex items-center justify-center border text-xs font-semibold transition-all duration-300 ${prepStep > 1 ? 'border-primary bg-primary text-primary-foreground' : prepStep === 1 ? 'border-primary bg-primary/10 text-primary animate-pulse' : 'border-muted text-muted'}`}>
+                    {prepStep > 1 ? '✓' : '2'}
+                  </div>
+                  <span className={prepStep === 1 ? 'font-medium text-foreground' : 'text-muted-foreground'}>Calibrating Microphone Levels</span>
+                </div>
+
+                <div className="flex items-center gap-3 text-sm">
+                  <div className={`h-5 w-5 rounded-full flex items-center justify-center border text-xs font-semibold transition-all duration-300 ${prepStep > 2 ? 'border-primary bg-primary text-primary-foreground' : prepStep === 2 ? 'border-primary bg-primary/10 text-primary animate-pulse' : 'border-muted text-muted'}`}>
+                    {prepStep > 2 ? '✓' : '3'}
+                  </div>
+                  <span className={prepStep === 2 ? 'font-medium text-foreground' : 'text-muted-foreground'}>Optimizing Acoustic Model</span>
+                </div>
+
+                <div className="flex items-center gap-3 text-sm">
+                  <div className={`h-5 w-5 rounded-full flex items-center justify-center border text-xs font-semibold transition-all duration-300 ${prepProgress === 100 ? 'border-primary bg-primary text-primary-foreground' : prepStep === 3 ? 'border-primary bg-primary/10 text-primary animate-pulse' : 'border-muted text-muted'}`}>
+                    {prepProgress === 100 ? '✓' : '4'}
+                  </div>
+                  <span className={prepStep === 3 ? 'font-medium text-foreground' : 'text-muted-foreground'}>Finalizing Stream Connection</span>
+                </div>
+              </div>
+            </div>
+          ) : !isConnected ? (
+            /* Server Connection Loader */
             <div className="text-center max-w-md p-6 flex flex-col items-center animate-fade-in">
               {/* Connection Loader Icon */}
               <div className="relative flex items-center justify-center h-36 w-36 mb-8">
@@ -243,7 +350,7 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
                 <div className="absolute inset-0 rounded-full bg-primary/10 animate-sonar" style={{ animationDelay: '0s' }} />
                 <div className="absolute inset-0 rounded-full bg-primary/10 animate-sonar" style={{ animationDelay: '1s' }} />
                 <div className="absolute inset-0 rounded-full bg-primary/10 animate-sonar" style={{ animationDelay: '2s' }} />
-                
+
                 {/* Center Glass Sphere */}
                 <div className="relative flex items-center justify-center h-20 w-20 rounded-full bg-primary/10 border border-primary/20 shadow-2xl shadow-primary/20 backdrop-blur-md">
                   <div className="relative flex items-center justify-center h-10 w-10">
@@ -253,14 +360,14 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
                   </div>
                 </div>
               </div>
-              
+
               <h2 className="text-2xl font-bold mb-3 tracking-tight bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
                 Connecting to Server
               </h2>
               <p className="text-muted-foreground text-sm max-w-xs leading-relaxed mb-6">
                 Establishing a secure real-time audio connection for your interview.
               </p>
-              
+
               {/* Server Wakeup Info */}
               <div className="px-4 py-3 rounded-2xl bg-card/60 border border-border/80 shadow-sm max-w-sm flex items-center gap-3">
                 <div className="h-2 w-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
@@ -270,6 +377,7 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
               </div>
             </div>
           ) : (
+            /* Ready/Start Screen */
             <div className="text-center max-w-md p-6 flex flex-col items-center animate-scale-in">
               <h2 className="text-2xl font-bold mb-2">Ready when you are</h2>
               <p className="text-muted-foreground mb-8 text-sm">
@@ -300,19 +408,19 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
         onBack={() => router.push('/dashboard')}
       />
 
-      <div 
-        ref={containerRef} 
+      <div
+        ref={containerRef}
         className={`flex-1 flex flex-col md:flex-row overflow-hidden relative ${isDragging ? 'select-none' : ''}`}
       >
-        <div 
+        <div
           className="w-full md:w-[40%] border-r bg-card/50 flex flex-col overflow-hidden"
           style={isMobile ? { height: `${splitRatio}%` } : undefined}
         >
           <TranscriptPanel transcriptBlocks={transcriptBlocks} status={status} />
         </div>
-        
+
         {/* Draggable Divider Handle for Mobile */}
-        <div 
+        <div
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
           className="md:hidden h-3 bg-border hover:bg-primary/20 active:bg-primary/40 cursor-ns-resize flex items-center justify-center touch-none select-none z-10 transition-colors py-0.5"
@@ -320,14 +428,14 @@ export function LiveSessionView({ sessionId, initialSession, accessToken }: { se
           <div className="w-12 h-1 rounded-full bg-muted-foreground/30 hover:bg-muted-foreground/50 transition-colors" />
         </div>
 
-        <div 
+        <div
           className="w-full md:w-[60%] bg-card flex flex-col overflow-hidden"
           style={isMobile ? { height: `${100 - splitRatio}%` } : undefined}
         >
-          <AnswerPanel 
-            answerBlocks={answerBlocks} 
-            status={status} 
-            onClearAnswers={() => useSessionStore.setState({ answerBlocks: [] })} 
+          <AnswerPanel
+            answerBlocks={answerBlocks}
+            status={status}
+            onClearAnswers={() => useSessionStore.setState({ answerBlocks: [] })}
           />
         </div>
       </div>

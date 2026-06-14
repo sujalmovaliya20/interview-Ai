@@ -5,6 +5,7 @@ import { ChevronLeft, PauseCircle, PlayCircle, StopCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { SessionState } from '@/store/sessionStore'
+import { DesktopAppLauncher } from './DesktopAppLauncher'
 
 interface SessionTopBarProps {
   sessionId: string
@@ -118,6 +119,7 @@ export function SessionTopBar({
 
       {/* RIGHT GROUP */}
       <div className="flex items-center gap-3 flex-1 justify-end">
+        <DesktopAppLauncher sessionId={sessionId} />
         <div className="hidden sm:block">
           {isUnlimited ? (
             <div className="px-2.5 py-1 rounded-md text-xs font-medium bg-blue-500/10 text-blue-500">

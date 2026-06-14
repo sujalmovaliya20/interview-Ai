@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
-import { DesktopAppLauncher } from '@/components/session/DesktopAppLauncher'
 import { LiveSessionView } from '@/components/session/LiveSessionView'
 
 export default async function LiveSessionPage({ params }: { params: Promise<{ id: string }> }) {
@@ -31,9 +30,6 @@ export default async function LiveSessionPage({ params }: { params: Promise<{ id
 
   return (
     <div className="flex flex-col h-full">
-      <div className="w-full flex justify-end p-4 z-50 absolute top-0 right-0 pointer-events-none">
-        <DesktopAppLauncher sessionId={session.id} />
-      </div>
       <LiveSessionView 
         sessionId={session.id} 
         initialSession={session} 

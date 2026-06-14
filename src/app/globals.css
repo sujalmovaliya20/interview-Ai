@@ -56,18 +56,49 @@
       transform: scale(0.9);
       opacity: 0.6;
     }
+
     100% {
       transform: scale(2.2);
       opacity: 0;
     }
   }
+
   @keyframes fade-in {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
+
   @keyframes scale-in {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  --animate-wave: sound-wave 1.2s ease-in-out infinite;
+
+  @keyframes sound-wave {
+
+    0%,
+    100% {
+      height: 12px;
+    }
+
+    50% {
+      height: 48px;
+    }
   }
 }
 
@@ -144,15 +175,18 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
 }
 
 @layer utilities {
+
   /* Streaming cursor blink */
   .streaming-cursor::after {
     content: '▋';
@@ -161,33 +195,56 @@
     color: hsl(var(--primary));
     margin-left: 1px;
   }
+
   @keyframes blink-cursor {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0;
+    }
   }
 
   /* Connection status pulse */
   .status-pulse {
     animation: status-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+
   @keyframes status-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.4;
+    }
   }
 
   /* Slide down banner */
   .banner-slide-down {
     animation: slide-down 0.2s ease-out;
   }
+
   @keyframes slide-down {
-    from { transform: translateY(-100%); }
-    to { transform: translateY(0); }
+    from {
+      transform: translateY(-100%);
+    }
+
+    to {
+      transform: translateY(0);
+    }
   }
 
   /* Prose code block overrides */
   .prose pre {
     position: relative;
   }
+
   .prose code {
     font-size: 0.8em;
   }

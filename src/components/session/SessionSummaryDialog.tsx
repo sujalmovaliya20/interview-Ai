@@ -44,6 +44,7 @@ export function SessionSummaryDialog({
   model,
   transcriptBlocks,
   answerBlocks,
+  onClose,
   onGoToDashboard
 }: SessionSummaryDialogProps) {
   
@@ -87,7 +88,7 @@ export function SessionSummaryDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
       {/* preventDefault on InteractOutside is handled by onOpenChange being a no-op when they try to close it */}
       <DialogContent 
         className="sm:max-w-md"
