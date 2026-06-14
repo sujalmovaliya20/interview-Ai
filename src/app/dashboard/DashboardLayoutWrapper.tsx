@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 
 interface DashboardLayoutWrapperProps {
@@ -11,6 +12,38 @@ interface DashboardLayoutWrapperProps {
 export function DashboardLayoutWrapper({ children, sidebar, header }: DashboardLayoutWrapperProps) {
   const pathname = usePathname()
   
+  useEffect(() => {
+    // Proactively warm up backend services when user lands on dashboard
+    const warmUpServices = async () => {
+      const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL
+      const transUrl = process.env.NEXT_PUBLIC_TRANSCRIPTION_URL
+
+      const pings = []
+      if (socketUrl) {
+        pings.push(
+          fetch(`${socketUrl}/health`).catch(err => 
+            console.warn('[Warmup] Socket server ping failed:', err)
+          )
+        )
+      }
+      if (transUrl) {
+        pings.push(
+          fetch(`${transUrl}/health`).catch(err => 
+            console.warn('[Warmup] Transcription service ping failed:', err)
+          )
+        )
+      }
+
+      if (pings.length > 0) {
+        console.log('[Warmup] Waking up backend services proactively...')
+        await Promise.all(pings)
+        console.log('[Warmup] Proactive warmup requests sent.')
+      }
+    }
+
+    warmUpServices()
+  }, [])
+
   // Check if we are in a live session page (but NOT the /new page)
   const isLiveSession = pathname?.startsWith('/dashboard/session/') && !pathname?.endsWith('/new')
 
