@@ -24,7 +24,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const safeUser = {
     id: user.id,
-    email: profile?.email || user.email || 'user@example.com'
+    email: profile?.email || user.email || 'user@example.com',
+    full_name: profile?.full_name || user.user_metadata?.full_name || user.user_metadata?.name || null,
+    avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url || null
   }
 
   return (

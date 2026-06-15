@@ -3,11 +3,11 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { 
-  LayoutDashboard, 
-  Plus, 
-  History, 
-  FileText, 
+import {
+  LayoutDashboard,
+  Plus,
+  History,
+  FileText,
   Settings2,
   LogOut,
   BrainCircuit
@@ -35,17 +35,31 @@ const navItems = [
   { label: 'Settings', href: '/dashboard/settings', icon: Settings2 },
 ]
 
-export function Sidebar({ user, isMobile = false, onNavigate }: { user: { email: string; id: string }, isMobile?: boolean, onNavigate?: () => void }) {
+export function Sidebar({
+  user,
+  isMobile = false,
+  onNavigate
+}: {
+  user: {
+    email: string;
+    id: string;
+    full_name?: string | null;
+    avatar_url?: string | null;
+  },
+  isMobile?: boolean;
+  onNavigate?: () => void
+}) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.push('/auth/signin')
+    router.refresh()
+    window.location.href = '/'
   }
 
-  const initials = user.email.substring(0, 2).toUpperCase()
+  const initials = (user.full_name || user.email).substring(0, 2).toUpperCase()
 
   const content = (
     <div className="flex flex-col h-full bg-background">
@@ -58,10 +72,10 @@ export function Sidebar({ user, isMobile = false, onNavigate }: { user: { email:
 
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
         {navItems.map((item) => {
-          const isActive = item.href === '/dashboard' 
-            ? pathname === item.href 
+          const isActive = item.href === '/dashboard'
+            ? pathname === item.href
             : pathname.startsWith(item.href)
-            
+
           return (
             <Link
               key={item.href}
@@ -69,8 +83,8 @@ export function Sidebar({ user, isMobile = false, onNavigate }: { user: { email:
               onClick={onNavigate}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150",
-                isActive 
-                  ? "bg-primary/10 text-primary font-medium" 
+                isActive
+                  ? "bg-primary/10 text-primary font-medium"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
@@ -88,9 +102,18 @@ export function Sidebar({ user, isMobile = false, onNavigate }: { user: { email:
           <DropdownMenu>
             <DropdownMenuTrigger className="flex-1 flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors text-left outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-0">
               <Avatar className="h-8 w-8 shrink-0">
-                <AvatarFallback className="bg-primary/10 text-primary text-xs">{initials}</AvatarFallback>
+                {user.avatar_url ? (
+                  <img
+                    src={user.avatar_url}
+                    alt={user.full_name || user.email}
+                    className="h-full w-full object-cover rounded-full"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs">{initials}</AvatarFallback>
+                )}
               </Avatar>
-              <span className="text-sm font-medium truncate flex-1">{user.email}</span>
+              <span className="text-sm font-medium truncate flex-1">{user.full_name || user.email}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuGroup>

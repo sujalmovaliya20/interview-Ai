@@ -13,6 +13,9 @@ export interface Database {
         Row: {
           id: string
           email: string
+          full_name: string | null
+          avatar_url: string | null
+          provider: string | null
           stripe_customer_id: string | null
           created_at: string | null
           updated_at: string | null
@@ -20,6 +23,9 @@ export interface Database {
         Insert: {
           id: string
           email: string
+          full_name?: string | null
+          avatar_url?: string | null
+          provider?: string | null
           stripe_customer_id?: string | null
           created_at?: string | null
           updated_at?: string | null
@@ -27,6 +33,9 @@ export interface Database {
         Update: {
           id?: string
           email?: string
+          full_name?: string | null
+          avatar_url?: string | null
+          provider?: string | null
           stripe_customer_id?: string | null
           created_at?: string | null
           updated_at?: string | null

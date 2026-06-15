@@ -25,15 +25,27 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ThemeToggle } from '@/components/ThemeToggle'
 
-export function Header({ title, user }: { title: string; user: { email: string; id: string } }) {
+export function Header({
+  title,
+  user
+}: {
+  title: string;
+  user: {
+    email: string;
+    id: string;
+    full_name?: string | null;
+    avatar_url?: string | null;
+  }
+}) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
   const supabase = createClient()
-  const initials = user.email.substring(0, 2).toUpperCase()
+  const initials = (user.full_name || user.email).substring(0, 2).toUpperCase()
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.push('/auth/signin')
+    router.refresh()
+    window.location.href = '/'
   }
 
   return (
@@ -60,7 +72,16 @@ export function Header({ title, user }: { title: string; user: { email: string; 
         <DropdownMenu>
           <DropdownMenuTrigger className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring flex">
             <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary/10 text-primary text-xs">{initials}</AvatarFallback>
+              {user.avatar_url ? (
+                <img
+                  src={user.avatar_url}
+                  alt={user.full_name || user.email}
+                  className="h-full w-full object-cover rounded-full"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <AvatarFallback className="bg-primary/10 text-primary text-xs">{initials}</AvatarFallback>
+              )}
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
