@@ -49,13 +49,13 @@ export function Header({
   }
 
   return (
-    <header className="lg:hidden h-14 border-b border-border flex items-center justify-between px-4 bg-background shrink-0">
+    <header className="lg:hidden h-14 border-b border-white/[0.06] flex items-center justify-between px-4 bg-[#0a0a0c]/90 backdrop-blur-xl shrink-0 relative z-20">
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger render={<Button variant="ghost" size="icon" className="shrink-0" />}>
+        <SheetTrigger render={<Button variant="ghost" size="icon" className="shrink-0 text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.06]" />}>
           <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle menu</span>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-72">
+        <SheetContent side="left" className="p-0 w-72 bg-[#0a0a0c] border-r border-white/[0.06]">
           <SheetHeader className="sr-only">
             <SheetTitle>Navigation Menu</SheetTitle>
           </SheetHeader>
@@ -63,15 +63,15 @@ export function Header({
         </SheetContent>
       </Sheet>
 
-      <h1 className="text-sm font-semibold truncate flex-1 text-center px-4">
+      <h1 className="text-sm font-semibold truncate flex-1 text-center px-4 text-zinc-200">
         {title}
       </h1>
 
       <div className="flex items-center gap-2">
         <ThemeToggle />
         <DropdownMenu>
-          <DropdownMenuTrigger className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring flex">
-            <Avatar className="h-8 w-8">
+          <DropdownMenuTrigger className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-violet-500/30 flex">
+            <Avatar className="h-8 w-8 ring-2 ring-violet-500/10">
               {user.avatar_url ? (
                 <img
                   src={user.avatar_url}
@@ -80,19 +80,19 @@ export function Header({
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <AvatarFallback className="bg-primary/10 text-primary text-xs">{initials}</AvatarFallback>
+                <AvatarFallback className="bg-violet-500/10 text-violet-400 text-xs font-semibold">{initials}</AvatarFallback>
               )}
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-56 bg-[#0f0f12] border-white/[0.08] backdrop-blur-xl">
             <DropdownMenuGroup>
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
+              <DropdownMenuLabel className="text-zinc-400">My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-white/[0.06]" />
+              <DropdownMenuItem onClick={() => router.push('/dashboard/settings')} className="text-zinc-300 focus:bg-white/[0.06] focus:text-white">
                 <Settings2 className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+              <DropdownMenuItem onClick={handleSignOut} className="text-red-400 focus:bg-red-500/10 focus:text-red-300">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Sign out</span>
               </DropdownMenuItem>

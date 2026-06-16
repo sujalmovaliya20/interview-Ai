@@ -62,15 +62,21 @@ export function Sidebar({
   const initials = (user.full_name || user.email).substring(0, 2).toUpperCase()
 
   const content = (
-    <div className="flex flex-col h-full bg-background">
-      <div className="h-16 flex items-center px-6 border-b border-border">
-        <Link href="/dashboard" className="flex items-center gap-2" onClick={onNavigate}>
-          <BrainCircuit className="h-6 w-6 text-primary" />
-          <span className="font-bold text-lg">InterviewAI</span>
+    <div className="flex flex-col h-full bg-[#0a0a0c]/95 backdrop-blur-xl">
+      {/* Logo / Branding */}
+      <div className="h-16 flex items-center px-6 border-b border-white/[0.06]">
+        <Link href="/dashboard" className="flex items-center gap-2.5" onClick={onNavigate}>
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-violet-500/15 to-indigo-500/15 border border-violet-500/20 flex items-center justify-center shadow-lg shadow-violet-500/5">
+            <BrainCircuit className="h-4.5 w-4.5 text-violet-400" />
+          </div>
+          <span className="font-extrabold text-base tracking-tight bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+            InterviewAI
+          </span>
         </Link>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-5 px-3 space-y-1">
         {navItems.map((item) => {
           const isActive = item.href === '/dashboard'
             ? pathname === item.href
@@ -82,26 +88,33 @@ export function Sidebar({
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md transition-colors duration-150",
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative",
                 isActive
-                  ? "bg-primary/10 text-primary font-medium"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "bg-violet-500/10 text-violet-300 font-medium shadow-sm shadow-violet-500/5"
+                  : "text-zinc-400 hover:bg-white/[0.04] hover:text-zinc-200"
               )}
             >
-              <item.icon className="h-[18px] w-[18px]" />
+              {isActive && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-gradient-to-b from-violet-400 to-indigo-400" />
+              )}
+              <item.icon className={cn(
+                "h-[18px] w-[18px] transition-colors",
+                isActive ? "text-violet-400" : "text-zinc-500 group-hover:text-zinc-300"
+              )} />
               <span className="text-sm">{item.label}</span>
             </Link>
           )
         })}
       </nav>
 
-      <div className="p-4 border-t border-border mt-auto">
+      {/* Bottom Section */}
+      <div className="p-4 border-t border-white/[0.06] mt-auto space-y-4">
         <CreditsWidget />
-        <Separator className="my-4" />
+        <Separator className="bg-white/[0.06]" />
         <div className="flex items-center gap-2">
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex-1 flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors text-left outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-0">
-              <Avatar className="h-8 w-8 shrink-0">
+            <DropdownMenuTrigger className="flex-1 flex items-center gap-3 p-2 rounded-xl hover:bg-white/[0.04] transition-all text-left outline-none focus-visible:ring-2 focus-visible:ring-violet-500/30 min-w-0">
+              <Avatar className="h-8 w-8 shrink-0 ring-2 ring-violet-500/10">
                 {user.avatar_url ? (
                   <img
                     src={user.avatar_url}
@@ -110,20 +123,20 @@ export function Sidebar({
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <AvatarFallback className="bg-primary/10 text-primary text-xs">{initials}</AvatarFallback>
+                  <AvatarFallback className="bg-violet-500/10 text-violet-400 text-xs font-semibold">{initials}</AvatarFallback>
                 )}
               </Avatar>
-              <span className="text-sm font-medium truncate flex-1">{user.full_name || user.email}</span>
+              <span className="text-sm font-medium truncate flex-1 text-zinc-300">{user.full_name || user.email}</span>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-56 bg-[#0f0f12] border-white/[0.08] backdrop-blur-xl">
               <DropdownMenuGroup>
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => { router.push('/dashboard/settings'); onNavigate?.(); }}>
+                <DropdownMenuLabel className="text-zinc-400">My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-white/[0.06]" />
+                <DropdownMenuItem onClick={() => { router.push('/dashboard/settings'); onNavigate?.(); }} className="text-zinc-300 focus:bg-white/[0.06] focus:text-white">
                   <Settings2 className="mr-2 h-4 w-4" />
                   <span>Settings</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                <DropdownMenuItem onClick={handleSignOut} className="text-red-400 focus:bg-red-500/10 focus:text-red-300">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sign out</span>
                 </DropdownMenuItem>
@@ -138,14 +151,14 @@ export function Sidebar({
 
   if (isMobile) {
     return (
-      <aside className="flex flex-col h-full w-full bg-background">
+      <aside className="flex flex-col h-full w-full bg-[#0a0a0c]">
         {content}
       </aside>
     )
   }
 
   return (
-    <aside className="hidden lg:flex w-64 flex-col border-r border-border h-screen sticky top-0 shrink-0">
+    <aside className="hidden lg:flex w-64 flex-col border-r border-white/[0.06] h-screen sticky top-0 shrink-0">
       {content}
     </aside>
   )

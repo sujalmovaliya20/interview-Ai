@@ -17,8 +17,11 @@ export default async function SettingsPage() {
   const credits = creditsRes.data as unknown as Credits
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+    <div className="p-6 lg:p-8 space-y-6 max-w-6xl mx-auto">
+      <div className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight gradient-text">Settings</h1>
+        <p className="text-sm text-zinc-500">Manage your account, billing, and preferences</p>
+      </div>
       
       <SettingsClient 
         profile={profile} 

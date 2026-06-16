@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { FileSearch } from 'lucide-react'
+import { FileSearch, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState, useMemo } from 'react'
@@ -55,15 +55,19 @@ export function SessionsTable({ sessions, showPagination = false, pageSize = 10 
 
   if (sessions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-center border rounded-lg border-dashed">
-        <div className="rounded-full bg-muted p-3 mb-4">
-          <FileSearch className="h-6 w-6 text-muted-foreground" />
+      <div className="flex flex-col items-center justify-center p-14 text-center glass-card">
+        <div className="h-14 w-14 rounded-2xl bg-gradient-to-tr from-violet-500/10 to-indigo-500/10 border border-violet-500/15 flex items-center justify-center mb-5">
+          <Sparkles className="h-7 w-7 text-violet-400" />
         </div>
-        <h3 className="text-lg font-semibold mb-1">No sessions yet</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Start your first AI-powered interview session
+        <h3 className="text-lg font-semibold text-zinc-100 mb-1.5">No sessions yet</h3>
+        <p className="text-sm text-zinc-500 mb-5 max-w-xs">
+          Start your first AI-powered interview session and get real-time feedback
         </p>
-        <Button nativeButton={false} render={<Link href="/dashboard/session/new" className="inline-flex" />}>
+        <Button 
+          nativeButton={false} 
+          render={<Link href="/dashboard/session/new" className="inline-flex" />}
+          className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-md shadow-violet-500/10 hover:shadow-lg hover:shadow-violet-500/20 transition-all rounded-xl font-semibold"
+        >
           Start session
         </Button>
       </div>
@@ -72,34 +76,34 @@ export function SessionsTable({ sessions, showPagination = false, pageSize = 10 
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border">
+      <div className="rounded-xl border border-white/[0.06] overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Duration</TableHead>
-              <TableHead>Model</TableHead>
-              <TableHead>Status</TableHead>
+            <TableRow className="border-white/[0.06] hover:bg-transparent">
+              <TableHead className="text-zinc-500 font-medium text-xs uppercase tracking-wider">Date</TableHead>
+              <TableHead className="text-zinc-500 font-medium text-xs uppercase tracking-wider">Duration</TableHead>
+              <TableHead className="text-zinc-500 font-medium text-xs uppercase tracking-wider">Model</TableHead>
+              <TableHead className="text-zinc-500 font-medium text-xs uppercase tracking-wider">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginatedSessions.map((session) => (
               <TableRow
                 key={session.id}
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                className="cursor-pointer border-white/[0.04] hover:bg-violet-500/[0.03] transition-colors duration-200"
                 onClick={() => router.push(`/dashboard/session/${session.id}`)}
               >
-                <TableCell className="font-medium">
+                <TableCell className="font-medium text-zinc-200">
                   {formatDate(session.created_at)}
                 </TableCell>
-                <TableCell>{formatDuration(session.duration_seconds)}</TableCell>
+                <TableCell className="text-zinc-400">{formatDuration(session.duration_seconds)}</TableCell>
                 <TableCell>
                   <Badge
                     variant="outline"
                     className={
                       session.model.toLowerCase().includes('claude')
-                        ? 'text-purple-500 border-purple-500/20 bg-purple-500/10'
-                        : 'text-green-500 border-green-500/20 bg-green-500/10'
+                        ? 'text-purple-400 border-purple-500/20 bg-purple-500/10 shadow-none'
+                        : 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10 shadow-none'
                     }
                   >
                     {session.model}
@@ -116,10 +120,10 @@ export function SessionsTable({ sessions, showPagination = false, pageSize = 10 
                     }
                     className={
                       session.status === 'completed'
-                        ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20 border-green-500/20 shadow-none'
+                        ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/20 shadow-none'
                         : session.status === 'active'
-                        ? 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-blue-500/20 shadow-none'
-                        : 'bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20 shadow-none'
+                        ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 border-blue-500/20 shadow-none'
+                        : 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border-red-500/20 shadow-none'
                     }
                   >
                     <span className="capitalize">{session.status}</span>
@@ -137,10 +141,11 @@ export function SessionsTable({ sessions, showPagination = false, pageSize = 10 
             size="sm"
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
+            className="border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] text-zinc-300 disabled:text-zinc-600 rounded-lg"
           >
             Previous
           </Button>
-          <div className="text-sm text-muted-foreground mx-2">
+          <div className="text-sm text-zinc-500 mx-2 tabular-nums">
             Page {currentPage} of {totalPages}
           </div>
           <Button
@@ -148,6 +153,7 @@ export function SessionsTable({ sessions, showPagination = false, pageSize = 10 
             size="sm"
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
+            className="border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] text-zinc-300 disabled:text-zinc-600 rounded-lg"
           >
             Next
           </Button>

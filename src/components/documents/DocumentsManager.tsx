@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Crown } from 'lucide-react'
+import { Crown, FileText } from 'lucide-react'
 import { DocUpload } from './DocUpload'
 import { DocumentCard } from './DocumentCard'
 import { toast } from 'sonner'
@@ -69,34 +69,34 @@ export function DocumentsManager({ initialDocuments, userId }: DocumentsManagerP
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Documents</h1>
-          <p className="text-muted-foreground mt-1">Manage files the AI uses to personalize your session</p>
+          <h1 className="text-3xl font-bold gradient-text">Documents</h1>
+          <p className="text-zinc-500 mt-1 text-sm">Manage files the AI uses to personalize your session</p>
         </div>
       </div>
 
       {/* SECTION 1: Resume */}
-      <section className="bg-card border rounded-xl overflow-hidden shadow-sm">
-        <div className="p-5 border-b bg-muted/20 flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Crown className="w-5 h-5 text-primary" />
+      <section className="glass-card overflow-hidden">
+        <div className="p-5 border-b border-white/[0.06] flex items-center gap-3 bg-white/[0.01]">
+          <div className="p-2.5 bg-gradient-to-tr from-violet-500/15 to-indigo-500/15 border border-violet-500/15 rounded-xl">
+            <Crown className="w-5 h-5 text-violet-400" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-card-foreground">Resume</h2>
-            <p className="text-sm text-muted-foreground">Used as primary context in every session</p>
+            <h2 className="text-lg font-semibold text-zinc-100">Resume</h2>
+            <p className="text-sm text-zinc-500">Used as primary context in every session</p>
           </div>
         </div>
         <div className="p-6">
           {resume ? (
             <div className="space-y-4">
               <DocumentCard document={resume} onDelete={handleDelete} />
-              <div className="pt-4 border-t border-dashed">
-                <p className="text-sm text-muted-foreground mb-3 font-medium">Replace resume</p>
+              <div className="pt-4 border-t border-white/[0.06] border-dashed">
+                <p className="text-sm text-zinc-500 mb-3 font-medium">Replace resume</p>
                 <DocUpload isResume={true} onUploadComplete={handleUploadComplete} />
               </div>
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground mb-4">Upload your resume to get personalised AI answers tailored to your experience.</p>
+              <p className="text-sm text-zinc-500 mb-4">Upload your resume to get personalised AI answers tailored to your experience.</p>
               <DocUpload isResume={true} onUploadComplete={handleUploadComplete} />
             </div>
           )}
@@ -104,13 +104,18 @@ export function DocumentsManager({ initialDocuments, userId }: DocumentsManagerP
       </section>
 
       {/* SECTION 2: Supporting Documents */}
-      <section className="bg-card border rounded-xl overflow-hidden shadow-sm">
-        <div className="p-5 border-b bg-muted/20 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-card-foreground">Context Documents</h2>
-            <p className="text-sm text-muted-foreground">Add files like job descriptions, company info, or notes</p>
+      <section className="glass-card overflow-hidden">
+        <div className="p-5 border-b border-white/[0.06] flex items-center justify-between bg-white/[0.01]">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-tr from-indigo-500/15 to-blue-500/15 border border-indigo-500/15 rounded-xl">
+              <FileText className="w-5 h-5 text-indigo-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-zinc-100">Context Documents</h2>
+              <p className="text-sm text-zinc-500">Add files like job descriptions, company info, or notes</p>
+            </div>
           </div>
-          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-primary/10 text-primary">
+          <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-violet-500/10 text-violet-400 border border-violet-500/15">
             {otherDocs.length} / 10
           </span>
         </div>
@@ -125,8 +130,9 @@ export function DocumentsManager({ initialDocuments, userId }: DocumentsManagerP
               />
             ))}
             {otherDocs.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground bg-muted/10 rounded-lg border border-dashed">
-                No documents yet. Add files to help AI tailor answers.
+              <div className="text-center py-10 text-zinc-500 bg-white/[0.02] rounded-xl border border-white/[0.06] border-dashed">
+                <FileText className="h-8 w-8 mx-auto mb-3 text-zinc-600" />
+                <p className="text-sm">No documents yet. Add files to help AI tailor answers.</p>
               </div>
             )}
           </div>
