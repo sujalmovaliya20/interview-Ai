@@ -14,8 +14,8 @@ export function ProcessSection() {
     },
     {
       number: '02',
-      title: 'Launch Desktop Overlay',
-      description: 'Start our secure, lightweight desktop companion app. It floats as an undetectable translucent window just beneath your webcam, ensuring you maintain direct eye contact.',
+      title: 'Start Live Session',
+      description: 'Open our secure live interview session directly in your browser. Configure mock interview parameters, target roles, and custom coaching goals.',
       icon: MonitorOverlayIcon,
       color: 'from-indigo-500/20 to-blue-500/5',
       iconColor: 'text-indigo-400',
@@ -25,7 +25,7 @@ export function ProcessSection() {
     {
       number: '03',
       title: 'Real-Time Audio Capture',
-      description: 'The overlay automatically captures and transcribes incoming question audio from the interviewer (system audio) and your response (microphone) with sub-second latency.',
+      description: 'Speak your answers naturally. The platform captures and transcribes your microphone input on the fly with sub-second latency and detects questions.',
       icon: AudioPulseIcon,
       color: 'from-cyan-500/20 to-teal-500/5',
       iconColor: 'text-cyan-400',
@@ -34,8 +34,8 @@ export function ProcessSection() {
     },
     {
       number: '04',
-      title: 'Receive Instant Solutions',
-      description: 'As they speak, the AI generates talking points, code snippets, and custom hints optimized against your background, appearing progressively on your overlay.',
+      title: 'Receive Instant Feedback',
+      description: 'The AI coach evaluates your responses against the target role, highlighting strengths, tracking filler words, and listing areas for improvement.',
       icon: SparkleSolutionsIcon,
       color: 'from-emerald-500/20 to-green-500/5',
       iconColor: 'text-emerald-400',

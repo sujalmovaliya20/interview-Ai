@@ -27,13 +27,13 @@ export function HeroSection() {
           Ace Every Technical Interview <br className="hidden md:block" />
           With{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-indigo-200 to-indigo-400">
-            Real-Time AI Answers
+            Real-Time AI Coaching
           </span>
         </h1>
         
         {/* Tagline Subtitle */}
-        <p className="max-w-2xl mx-auto text-sm sm:text-base md:text-xl text-zinc-400 mb-8 sm:mb-12 leading-relaxed px-2 sm:px-0">
-          An undetectable smart overlay assistant that listens to your live Zoom, Meet, or Teams calls and delivers instant talking points, code, and behavioral guides right in your field of view.
+        <p className="max-w-3xl mx-auto text-sm sm:text-base md:text-xl text-zinc-400 mb-8 sm:mb-12 leading-relaxed px-2 sm:px-0">
+          A browser-native, real-time interview coaching platform that transcribes your spoken answers, analyzes core technical concepts, and delivers instant, actionable feedback to sharpen your delivery.
         </p>
 
         {/* Call to Actions */}
@@ -44,7 +44,7 @@ export function HeroSection() {
             className="w-full sm:w-auto text-sm font-semibold h-11 px-8 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-md shadow-violet-500/15 hover:shadow-lg hover:shadow-violet-500/25 active:scale-[0.99] transition-all border-0 flex items-center justify-center gap-2 group"
             render={<Link href="/auth/signin" />}
           >
-            <span>Start for free</span>
+            <span>Start practicing free</span>
             <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
           </Button>
           <Button 
@@ -88,10 +88,10 @@ export function HeroSection() {
               <MicTranscriptionIcon className="h-6 w-6" />
             </div>
             <h3 className="text-lg font-bold text-white mb-3 group-hover:text-violet-400 transition-colors">
-              Real-Time Transcription
+              Real-Time Voice Analysis
             </h3>
             <p className="text-zinc-400 text-sm leading-relaxed">
-              Proprietary local audio drivers capture both system audio and microphone output, feeding our high-speed AI engine with zero lag.
+              Captures your microphone audio natively via the browser, delivering high-speed voice transcription and conceptual analysis with zero lag.
             </p>
           </div>
 
@@ -100,10 +100,10 @@ export function HeroSection() {
               <ShieldInvisibleIcon className="h-6 w-6" />
             </div>
             <h3 className="text-lg font-bold text-white mb-3 group-hover:text-indigo-400 transition-colors">
-              Invisible Overlay Window
+              Agentic Mock Coaching
             </h3>
             <p className="text-zinc-400 text-sm leading-relaxed">
-              Runs as a native desktop translucent pane that remains invisible during screen-sharing sessions. Keep eye contact with the camera.
+              Engage with an interactive, adaptive AI coach that asks follow-ups, tracks STAR structure, and tailors questions to target your weak categories.
             </p>
           </div>
 
@@ -112,10 +112,10 @@ export function HeroSection() {
               <CodeDsaIcon className="h-6 w-6" />
             </div>
             <h3 className="text-lg font-bold text-white mb-3 group-hover:text-cyan-400 transition-colors">
-              Full Code & System Design
+              Instant Answers & Hints
             </h3>
             <p className="text-zinc-400 text-sm leading-relaxed">
-              Provides complete optimization support for DSA rounds. Recognizes code questions instantly and returns code snippets with complexity analysis.
+              Recognizes interview questions in real-time and streams conceptual bullet points, system design suggestions, and optimized code snippets.
             </p>
           </div>
 

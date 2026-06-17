@@ -28,7 +28,7 @@ export function PricingSection() {
       features: [
         'Unlimited live interview sessions',
         'Ultra-low latency models (GPT-4o / Claude 3.5)',
-        'Undetectable floating desktop overlay',
+        'Real-time conceptual assistant feedback',
         'Upload up to 10 resumes & job profiles',
         'Advanced system design & coding hints',
         'Priority API queues',

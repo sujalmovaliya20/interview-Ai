@@ -42,7 +42,7 @@ export default async function MarketingLayout({
                   </span>
                 </Link>
                 <p className="text-zinc-400 text-sm leading-relaxed max-w-sm">
-                  Ace your live tech and behavioral interviews with undetectable real-time AI assistance, custom resumes, and instant hints.
+                  Practice and master your technical and behavioral interviews with real-time feedback, interactive mock sessions, and intelligent resume optimization.
                 </p>
                 <div className="flex items-center space-x-2 bg-zinc-900/40 border border-zinc-800/50 w-fit rounded-full px-3 py-1.5">
                   <span className="flex h-2 w-2 relative">
