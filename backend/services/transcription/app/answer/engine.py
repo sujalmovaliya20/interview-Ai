@@ -45,7 +45,7 @@ class AnswerEngine:
       cached = await self.redis.get(redis_key)
       if cached:
         val = cached.decode()
-        if val and val != "unknown_user":
+        if val and val not in ("unknown_user", "00000000-0000-0000-0000-000000000000"):
           return val
     except Exception as e:
       self.logger.warning("redis_get_user_id_failed", session_id=session_id, error=str(e))
@@ -85,7 +85,7 @@ class AnswerEngine:
     )
 
   async def _stream_and_publish(self, question: str, session_id: str, user_id: str, language: str):
-    if not user_id or user_id == "unknown_user":
+    if not user_id or user_id in ("unknown_user", "00000000-0000-0000-0000-000000000000"):
       user_id = await self.resolve_user_id(session_id)
 
     answer_id = str(uuid.uuid4())

@@ -151,7 +151,7 @@ async def analyze_screen(req: AnalyzeScreenRequest):
     resume_context = ""
     if req.session_id:
       user_id = await state.answer_engine.resolve_user_id(req.session_id)
-      if user_id and user_id != "unknown_user":
+      if user_id and user_id not in ("unknown_user", "00000000-0000-0000-0000-000000000000"):
         resume_context = await state.answer_engine.cache_manager.get_or_build_resume_context(user_id)
 
     prompt_text = "This is a screenshot from a technical interview. Identify the question being asked and provide a complete, well-structured answer. If it's a coding question, provide working code with explanation."

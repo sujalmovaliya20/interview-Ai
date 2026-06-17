@@ -82,7 +82,7 @@ async def get_user_resume_context(user_id: str) -> str:
   Helper to retrieve candidate resume text from Supabase documents table.
   Runs query in executor to avoid blocking FastAPI event loop.
   """
-  if not user_id or user_id == "unknown_user":
+  if not user_id or user_id in ("unknown_user", "00000000-0000-0000-0000-000000000000"):
     return ""
 
   def _fetch():

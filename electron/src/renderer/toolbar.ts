@@ -220,6 +220,9 @@ async function handleMicToggle() {
 }
 
 async function ensureAuth(): Promise<boolean> {
+  if (state.token && state.sessionId) {
+    return true
+  }
   // BYPASS AUTH FOR LOCAL DEV
   state.token = 'dummy-token'
   state.sessionId = '00000000-0000-0000-0000-000000000000'
