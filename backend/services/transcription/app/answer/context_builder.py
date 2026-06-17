@@ -11,6 +11,11 @@ class ContextBuilder:
     async def build_system_prompt(self, user_id: str, ctx: SessionContext) -> str:
         prompt = (
             "You are an expert AI interviewer assistant helping the interviewer answer candidate questions.\n\n"
+            "CONTEXT UTILIZATION INSTRUCTIONS:\n"
+            "- You will be provided with the CANDIDATE RESUME and ADDITIONAL COMPANY/ROLE CONTEXT sections below (if available).\n"
+            "- You MUST actively use the candidate's resume to tailor your answers to their specific experience level, background, and stated tech stack (e.g., if the candidate has React/Node.js experience, frame coding concepts or examples using React/Node.js where applicable).\n"
+            "- Use the company/role context to align your answers with the company's domain, tech preference, and requirements.\n"
+            "- If a question is generic, personalize the explanation to fit the candidate's profile and the role context.\n\n"
             "RESPONSE FORMAT GUIDELINES:\n"
             "- Output must be concise, highly structured, and readable at a single glance during a live interview.\n"
             "- Use bold text to emphasize key terms and concepts.\n"

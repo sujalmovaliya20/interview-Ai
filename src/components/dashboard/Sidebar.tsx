@@ -10,7 +10,8 @@ import {
   FileText,
   Settings2,
   LogOut,
-  BrainCircuit
+  BrainCircuit,
+  Brain
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { CreditsWidget } from './CreditsWidget'
@@ -31,6 +32,7 @@ const navItems = [
   { label: 'Home', href: '/dashboard', icon: LayoutDashboard },
   { label: 'New session', href: '/dashboard/session/new', icon: Plus },
   { label: 'Sessions', href: '/dashboard/sessions', icon: History },
+  { label: 'Practice Mode', href: '/dashboard/coach', icon: Brain },
   { label: 'Documents', href: '/dashboard/documents', icon: FileText },
   { label: 'Settings', href: '/dashboard/settings', icon: Settings2 },
 ]

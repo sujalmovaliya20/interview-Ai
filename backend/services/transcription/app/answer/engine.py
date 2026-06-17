@@ -32,6 +32,49 @@ class AnswerEngine:
     # Rate limit tracking per model
     self._primary_rate_limited_until: float = 0
 
+  async def resolve_user_id(self, session_id: str) -> str:
+    """
+    Resolves user_id for a session_id. Checks Redis first,
+    then falls back to querying the sessions table in Supabase.
+    Stores the resolved ID in Redis with a 1-hour TTL.
+    """
+    if not session_id:
+      return "unknown_user"
+    redis_key = f"session:user_id:{session_id}"
+    try:
+      cached = await self.redis.get(redis_key)
+      if cached:
+        val = cached.decode()
+        if val and val != "unknown_user":
+          return val
+    except Exception as e:
+      self.logger.warning("redis_get_user_id_failed", session_id=session_id, error=str(e))
+
+    # Fallback to Supabase query
+    def _fetch_from_db():
+      res = self.cache_manager.supabase_client.table('sessions')\
+          .select('user_id')\
+          .eq('id', session_id)\
+          .single()\
+          .execute()
+      return res.data if hasattr(res, 'data') else res.get('data', {})
+
+    try:
+      data = await asyncio.to_thread(_fetch_from_db)
+      if data and data.get('user_id'):
+        resolved_id = data['user_id']
+        # Cache back to Redis with 1 hour TTL
+        try:
+          await self.redis.set(redis_key, resolved_id, ex=3600)
+        except Exception as re:
+          self.logger.warning("redis_set_user_id_failed", session_id=session_id, error=str(re))
+        self.logger.info("resolved_user_id_from_db", session_id=session_id, user_id=resolved_id)
+        return resolved_id
+    except Exception as e:
+      self.logger.error("resolve_user_id_failed", session_id=session_id, error=str(e))
+    
+    return "unknown_user"
+
   async def process_transcript(self, text: str, session_id: str, user_id: str, model: str, language: str):
     if not self.detector.is_question(text):
       return
@@ -42,6 +85,9 @@ class AnswerEngine:
     )
 
   async def _stream_and_publish(self, question: str, session_id: str, user_id: str, language: str):
+    if not user_id or user_id == "unknown_user":
+      user_id = await self.resolve_user_id(session_id)
+
     answer_id = str(uuid.uuid4())
     history = self._history.get(session_id, [])
     extra_context = await self._get_extra_context(session_id)
