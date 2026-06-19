@@ -55,7 +55,7 @@ export function CreditsWidget() {
         variant="outline" 
         size="sm" 
         className="w-full border-white/[0.08] bg-white/[0.02] text-zinc-400 hover:bg-violet-500/10 hover:text-violet-300 hover:border-violet-500/20 rounded-lg text-xs transition-all" 
-        render={<Link href="/pricing" className="block w-full" />}
+        render={<Link href="/dashboard" className="block w-full" />}
       >
         Add credits
       </Button>

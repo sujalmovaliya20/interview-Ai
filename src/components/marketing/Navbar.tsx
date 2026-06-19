@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { BrainCircuit } from 'lucide-react'
 import { User } from '@supabase/supabase-js'
 import { MobileMenu } from '@/components/marketing/MobileMenu'
+import { LogoIcon } from './CustomIcons'
 
 interface NavbarProps {
   user: User | null
@@ -15,9 +15,7 @@ export function Navbar({ user }: NavbarProps) {
 
         {/* Logo */}
         <Link href="/" className="flex items-center space-x-2 sm:space-x-2.5 transition-opacity hover:opacity-90">
-          <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-gradient-to-tr from-violet-500/10 to-indigo-500/10 border border-violet-500/20 flex items-center justify-center shadow-lg shadow-violet-500/5">
-            <BrainCircuit className="h-4 w-4 sm:h-5 sm:w-5 text-violet-400" />
-          </div>
+          <LogoIcon className="h-8 w-8 sm:h-9 sm:w-9" />
           <span className="font-extrabold tracking-tight text-zinc-100 text-base sm:text-lg bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-transparent">
             InterviewAI
           </span>

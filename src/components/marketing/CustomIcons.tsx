@@ -8,51 +8,34 @@ export function LogoIcon({ className, ...props }: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 32 32"
+      viewBox="16 10 70 79"
       fill="none"
       className={className}
       {...props}
     >
       <defs>
-        <linearGradient id="logo-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#a78bfa" />
+        <linearGradient id="logo-ribbon-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="40%" stopColor="#c084fc" />
           <stop offset="100%" stopColor="#6366f1" />
         </linearGradient>
-        <linearGradient id="logo-grad-2" x1="100%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#818cf8" stopOpacity="0.8" />
-          <stop offset="100%" stopColor="#c084fc" stopOpacity="0.2" />
-        </linearGradient>
+        <filter id="logo-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#a855f7" floodOpacity="0.4" />
+        </filter>
       </defs>
-      
-      {/* Outer circuit path nodes */}
-      <circle cx="8" cy="8" r="1.5" fill="#a78bfa" />
-      <circle cx="24" cy="24" r="1.5" fill="#6366f1" />
-      <circle cx="26" cy="8" r="1" fill="#818cf8" />
-      <circle cx="6" cy="22" r="1" fill="#c084fc" />
 
-      {/* Interconnecting circuit lines */}
-      <path d="M8 8.5v3.5l4 4h8" stroke="url(#logo-grad-2)" strokeWidth="1" strokeLinecap="round" />
-      <path d="M24 23.5v-3.5l-4-4h-8" stroke="url(#logo-grad-2)" strokeWidth="1" strokeLinecap="round" />
-      <path d="M26 9v3.5l-3.5 3.5" stroke="url(#logo-grad-2)" strokeWidth="0.75" strokeDasharray="2 2" />
-      
-      {/* Core Brain/Processor Shape */}
+      {/* The stylized geometric Möbius Ribbon 'A' / Speech bubble */}
       <path
-        d="M12 10c-1.5 0-3 1.2-3 3 0 1.2.6 2 1.2 2.5-.6.5-1.2 1.3-1.2 2.5 0 1.8 1.5 3 3 3h2c0.8 0 1.5-0.7 1.5-1.5v-7c0-.8-.7-1.5-1.5-1.5h-2z"
-        fill="url(#logo-grad-1)"
-        className="animate-pulse"
-        style={{ animationDuration: '3s' }}
-      />
-      <path
-        d="M20 10c1.5 0 3 1.2 3 3 0 1.2-.6 2-1.2 2.5.6.5 1.2 1.3 1.2 2.5 0 1.8-1.5 3-3 3h-2c-.8 0-1.5-.7-1.5-1.5v-7c0-.8.7-1.5 1.5-1.5h2z"
-        fill="url(#logo-grad-1)"
-        transform="rotate(180 16 16)"
-        className="animate-pulse"
-        style={{ animationDuration: '3s', animationDelay: '0.5s' }}
+        d="M 25 76 L 50 20 L 75 76 C 80 83, 68 85, 58 78 C 48 70, 48 54, 58 48 C 68 42, 78 48, 78 58 C 78 68, 68 72, 50 72 L 26 72"
+        stroke="url(#logo-ribbon-grad)"
+        strokeWidth="7.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        filter="url(#logo-glow)"
       />
 
-      {/* Central Core Connection Node */}
-      <rect x="14.5" y="14.5" width="3" height="3" rx="0.75" fill="#ffffff" className="animate-ping" style={{ animationDuration: '2s' }} />
-      <rect x="14.5" y="14.5" width="3" height="3" rx="0.75" fill="#818cf8" />
+      {/* Center AI processor node */}
+      <circle cx="63" cy="60" r="4" fill="#ffffff" filter="url(#logo-glow)" />
     </svg>
   )
 }

@@ -18,7 +18,7 @@ const initialState = {
   email: null,
 }
 
-import { BrainCircuit } from 'lucide-react'
+import { LogoIcon } from '@/components/marketing/CustomIcons'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -63,9 +63,7 @@ export function SignInForm({ isDesktop }: { isDesktop?: boolean }) {
       <Card className="w-full max-w-md mx-auto bg-zinc-950/45 backdrop-blur-xl border border-zinc-800/80 shadow-2xl rounded-3xl p-3 relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-40 h-40 bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
         <CardHeader className="text-center pt-8 pb-4">
-          <div className="mx-auto bg-gradient-to-tr from-violet-500/10 to-indigo-500/10 border border-violet-500/20 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-violet-500/5">
-            <BrainCircuit className="h-6 w-6 text-violet-400" />
-          </div>
+          <LogoIcon className="mx-auto w-12 h-12 mb-4" />
           <CardTitle className="text-2xl font-extrabold tracking-tight bg-gradient-to-b from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
             Sign in to InterviewAI
           </CardTitle>
@@ -90,9 +88,7 @@ export function SignInForm({ isDesktop }: { isDesktop?: boolean }) {
       <Card className="w-full max-w-md mx-auto bg-zinc-950/45 backdrop-blur-xl border border-zinc-800/80 shadow-2xl rounded-3xl p-3 relative overflow-hidden">
         <div className="absolute -top-20 -right-20 w-40 h-40 bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
         <CardHeader className="text-center pt-8 pb-6">
-          <div className="mx-auto bg-gradient-to-tr from-violet-500/10 to-indigo-500/10 border border-violet-500/20 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-violet-500/5">
-            <BrainCircuit className="h-6 w-6 text-violet-400" />
-          </div>
+          <LogoIcon className="mx-auto w-12 h-12 mb-4" />
           <CardTitle className="text-2xl font-extrabold tracking-tight bg-gradient-to-b from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
             Check your inbox
           </CardTitle>
@@ -112,9 +108,7 @@ export function SignInForm({ isDesktop }: { isDesktop?: boolean }) {
       <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
 
       <CardHeader className="text-center pt-8 pb-6">
-        <div className="mx-auto bg-gradient-to-tr from-violet-500/10 to-indigo-500/10 border border-violet-500/20 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-violet-500/5">
-          <BrainCircuit className="h-6 w-6 text-violet-400" />
-        </div>
+        <LogoIcon className="mx-auto w-12 h-12 mb-4" />
         <CardTitle className="text-2xl font-extrabold tracking-tight bg-gradient-to-b from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
           Sign in to InterviewAI
         </CardTitle>

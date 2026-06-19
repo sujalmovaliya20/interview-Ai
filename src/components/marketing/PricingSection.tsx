@@ -84,16 +84,16 @@ export function PricingSection() {
           {plans.map((plan, index) => (
             <div
               key={index}
-              className={`relative flex flex-col justify-between rounded-2xl border bg-zinc-950/40 p-6 sm:p-8 backdrop-blur-md hover:bg-zinc-950/80 transition-all duration-300 ${
+              className={`relative flex flex-col justify-between rounded-2xl border bg-[#050506] p-6 sm:p-8 backdrop-blur-md transition-all duration-300 ${
                 plan.popular
-                  ? 'border-violet-500/50 shadow-[0_0_30px_-5px_rgba(139,92,246,0.25)] ring-1 ring-violet-500/30 md:-translate-y-2'
-                  : 'border-zinc-900 hover:border-zinc-800'
+                  ? 'border-violet-500/30 shadow-[0_0_25px_-5px_rgba(139,92,246,0.15)] ring-1 ring-violet-500/20 md:-translate-y-2'
+                  : 'border-zinc-900/80 hover:border-zinc-800/80'
               }`}
             >
               {/* Popular Badge */}
               {plan.popular && (
                 <div className="absolute top-0 right-8 -translate-y-1/2">
-                  <span className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-[11px] font-bold px-3.5 py-1.5 rounded-full uppercase tracking-widest shadow-md shadow-violet-500/20">
+                  <span className="bg-gradient-to-r from-violet-600/80 to-indigo-600/80 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest shadow-md shadow-violet-500/10">
                     Most Popular
                   </span>
                 </div>
@@ -101,18 +101,23 @@ export function PricingSection() {
 
               {/* Top Section */}
               <div>
-                <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-bold text-white">{plan.name}</h3>
+                  <span className="text-[9px] font-extrabold tracking-wider uppercase bg-violet-500/10 text-violet-400 border border-violet-500/35 px-2.5 py-1 rounded-full shadow-[0_0_12px_rgba(168,85,247,0.15)]">
+                    Coming Soon
+                  </span>
+                </div>
                 <p className="text-zinc-400 text-xs leading-normal min-h-[32px] mb-6">
                   {plan.description}
                 </p>
 
                 {/* Price Display */}
-                <div className="flex items-baseline mb-6 border-b border-zinc-900 pb-6">
-                  <span className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+                <div className="flex items-baseline mb-6 border-b border-zinc-900/60 pb-6">
+                  <span className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-zinc-300 tracking-tight">
                     {plan.price}
                   </span>
                   {plan.period && (
-                    <span className="text-sm font-semibold text-zinc-500 ml-1">
+                    <span className="text-sm font-semibold text-zinc-600 ml-1">
                       {plan.period}
                     </span>
                   )}
@@ -121,9 +126,9 @@ export function PricingSection() {
                 {/* Features List */}
                 <ul className="space-y-3.5 mb-8 text-sm">
                   {plan.features.map((feature, fIndex) => (
-                    <li key={fIndex} className="flex items-start text-zinc-300">
-                      <div className="h-5 w-5 rounded-full bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shrink-0 mr-3 mt-0.5">
-                        <Check className="h-3.5 w-3.5 text-violet-400" />
+                    <li key={fIndex} className="flex items-start text-zinc-400">
+                      <div className="h-5 w-5 rounded-full bg-violet-500/5 border border-violet-500/10 flex items-center justify-center shrink-0 mr-3 mt-0.5">
+                        <Check className="h-3.5 w-3.5 text-violet-400/80" />
                       </div>
                       <span className="leading-tight">{feature}</span>
                     </li>
@@ -134,16 +139,11 @@ export function PricingSection() {
               {/* Action Button */}
               <div className="mt-auto">
                 <Button
-                  nativeButton={false}
-                  variant={plan.variant}
-                  className={`w-full rounded-xl font-semibold transition-all h-11 ${
-                    plan.popular
-                      ? 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white border-0 shadow-lg shadow-violet-500/15'
-                      : 'border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-900'
-                  }`}
-                  render={<Link href={plan.href} />}
+                  nativeButton={true}
+                  disabled
+                  className="w-full rounded-xl font-semibold h-11 border border-zinc-900 bg-zinc-950/80 text-zinc-500 cursor-not-allowed transition-colors"
                 >
-                  {plan.cta}
+                  Coming Soon
                 </Button>
               </div>
             </div>

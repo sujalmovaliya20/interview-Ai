@@ -10,9 +10,9 @@ import {
   FileText,
   Settings2,
   LogOut,
-  BrainCircuit,
   Brain
 } from 'lucide-react'
+import { LogoIcon } from '@/components/marketing/CustomIcons'
 import { cn } from '@/lib/utils'
 import { CreditsWidget } from './CreditsWidget'
 import { Separator } from '@/components/ui/separator'
@@ -68,9 +68,7 @@ export function Sidebar({
       {/* Logo / Branding */}
       <div className="h-16 flex items-center px-6 border-b border-white/[0.06]">
         <Link href="/dashboard" className="flex items-center gap-2.5" onClick={onNavigate}>
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-violet-500/15 to-indigo-500/15 border border-violet-500/20 flex items-center justify-center shadow-lg shadow-violet-500/5">
-            <BrainCircuit className="h-4.5 w-4.5 text-violet-400" />
-          </div>
+          <LogoIcon className="h-8 w-8" />
           <span className="font-extrabold text-base tracking-tight bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
             InterviewAI
           </span>

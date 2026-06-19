@@ -71,7 +71,7 @@ export function OverlaySimulator() {
       setTypedText('')
       setShownAnswers([])
       setAnimatingAnswerIdx(0)
-      
+
       // Simulate typewriter transcription
       let charIdx = 0
       const transcriptionText = currentStep.transcription
@@ -116,7 +116,7 @@ export function OverlaySimulator() {
 
   return (
     <div className="relative mx-auto max-w-4xl w-full rounded-2xl border border-zinc-800 bg-[#070709] p-1.5 sm:p-2.5 shadow-2xl shadow-violet-500/5 overflow-hidden">
-      
+
       {/* Top OS-Style Header */}
       <div className="flex items-center justify-between border-b border-zinc-900 px-3 sm:px-4 py-1.5 sm:py-2 bg-zinc-950/80 rounded-t-xl">
         <div className="flex space-x-1.5">
@@ -138,7 +138,7 @@ export function OverlaySimulator() {
 
       {/* Simulator Workspace Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-2 sm:gap-3 p-2 sm:p-3 bg-[#070709] min-h-[280px] sm:min-h-[420px]">
-        
+
         {/* Left Side: Mock Video Interview Call (e.g. Zoom) */}
         <div className="md:col-span-6 rounded-xl border border-zinc-900/60 bg-zinc-950 overflow-hidden relative flex flex-col justify-between p-3 sm:p-4 min-h-[180px] sm:min-h-[220px]">
           {/* Top Bar Call UI */}
@@ -169,7 +169,7 @@ export function OverlaySimulator() {
               <div className="h-10 w-10 rounded-full bg-zinc-700/30" />
               <div className="absolute bottom-0 h-4 w-12 rounded-t-full bg-zinc-700/20" />
             </div>
-            
+
             <p className="text-xs font-bold text-zinc-300">Technical Interviewer</p>
             <p className="text-[10px] text-zinc-500">Google Career Portal</p>
 
@@ -207,12 +207,12 @@ export function OverlaySimulator() {
 
         {/* Right Side: The Invisible Overlay Simulator */}
         <div className="md:col-span-6 flex flex-col gap-3">
-          
+
           {/* Overlay Box */}
           <div className="flex-1 rounded-xl border border-violet-500/20 bg-gradient-to-br from-zinc-950 to-zinc-900/90 p-4 relative overflow-hidden flex flex-col justify-between">
             {/* Ambient glass glow */}
             <div className="absolute top-0 right-0 h-16 w-16 bg-violet-500/10 blur-xl rounded-full" />
-            
+
             {/* Top info and status */}
             <div>
               <div className="flex justify-between items-center mb-3">
@@ -224,7 +224,7 @@ export function OverlaySimulator() {
                   </svg>
                   <span>InterviewAI Overlay</span>
                 </span>
-                
+
                 {/* Status Indicator */}
                 {state === 'transcribing' && (
                   <span className="text-[10px] text-zinc-500 flex items-center gap-1">
@@ -261,7 +261,7 @@ export function OverlaySimulator() {
                     Waiting for interviewer to finish speaking...
                   </div>
                 )}
-                
+
                 {state === 'generating' && (
                   <div className="flex flex-col gap-2 mt-4">
                     <div className="h-3.5 w-2/3 bg-zinc-900 animate-pulse rounded-md" />

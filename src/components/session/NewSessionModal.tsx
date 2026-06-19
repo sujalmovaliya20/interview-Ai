@@ -141,14 +141,28 @@ export function NewSessionModal() {
                   <RadioGroupItem value="abacusai/dracarys-llama-3.1-70b-instruct" id="dracarys" className="peer sr-only" />
                   <Label
                     htmlFor="dracarys"
-                    className="flex flex-col rounded-xl border-2 border-border/80 bg-card/40 p-4 hover:border-violet-500/40 hover:bg-violet-500/[0.02] peer-data-[state=checked]:border-violet-500 peer-data-[state=checked]:bg-violet-500/[0.04] peer-data-[state=checked]:shadow-md peer-data-[state=checked]:shadow-violet-500/5 cursor-pointer transition-all hover:scale-[1.02] duration-300 relative group"
+                    className={`flex flex-col rounded-xl border-2 p-4 cursor-pointer transition-all duration-300 relative group ${
+                      model === 'abacusai/dracarys-llama-3.1-70b-instruct'
+                        ? 'border-violet-500 bg-violet-500/[0.05] shadow-[0_0_20px_rgba(168,85,247,0.12)] scale-[1.02]'
+                        : 'border-border/80 bg-card/40 hover:border-violet-500/40 hover:bg-violet-500/[0.01]'
+                    }`}
                   >
-                    <div className="flex justify-between items-center mb-2">
+                    {/* Glowing Checkmark */}
+                    {model === 'abacusai/dracarys-llama-3.1-70b-instruct' && (
+                      <div className="absolute top-2.5 right-2.5 h-4 w-4 rounded-full bg-violet-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm shadow-violet-500/30">
+                        ✓
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center mb-2 pr-4">
                       <div className="flex items-center gap-2">
                         <BrainCircuit className="h-4.5 w-4.5 text-purple-500 group-hover:animate-pulse" />
                         <span className="font-bold text-purple-600 dark:text-purple-400 text-sm">Dracarys 70B</span>
                       </div>
-                      <Badge variant="outline" className="text-[9px] font-semibold bg-background/50 border-purple-500/20 text-purple-600 dark:text-purple-400 px-1.5 py-0">Free</Badge>
+                      <Badge variant="outline" className={`text-[9px] font-semibold px-1.5 py-0 transition-all ${
+                        model === 'abacusai/dracarys-llama-3.1-70b-instruct'
+                          ? 'bg-violet-500/20 border-violet-500/30 text-violet-400'
+                          : 'bg-background/50 border-purple-500/20 text-purple-600 dark:text-purple-400'
+                      }`}>Free</Badge>
                     </div>
                     <span className="text-xs text-muted-foreground leading-relaxed mt-1">Best for technical depth. Recommended.</span>
                   </Label>
@@ -157,14 +171,28 @@ export function NewSessionModal() {
                   <RadioGroupItem value="mistralai/mistral-large" id="mistral" className="peer sr-only" />
                   <Label
                     htmlFor="mistral"
-                    className="flex flex-col rounded-xl border-2 border-border/80 bg-card/40 p-4 hover:border-blue-500/40 hover:bg-blue-500/[0.02] peer-data-[state=checked]:border-blue-500 peer-data-[state=checked]:bg-blue-500/[0.04] peer-data-[state=checked]:shadow-md peer-data-[state=checked]:shadow-blue-500/5 cursor-pointer transition-all hover:scale-[1.02] duration-300 relative group"
+                    className={`flex flex-col rounded-xl border-2 p-4 cursor-pointer transition-all duration-300 relative group ${
+                      model === 'mistralai/mistral-large'
+                        ? 'border-blue-500 bg-blue-500/[0.05] shadow-[0_0_20px_rgba(59,130,246,0.12)] scale-[1.02]'
+                        : 'border-border/80 bg-card/40 hover:border-blue-500/40 hover:bg-blue-500/[0.01]'
+                    }`}
                   >
-                    <div className="flex justify-between items-center mb-2">
+                    {/* Glowing Checkmark */}
+                    {model === 'mistralai/mistral-large' && (
+                      <div className="absolute top-2.5 right-2.5 h-4 w-4 rounded-full bg-blue-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm shadow-blue-500/30">
+                        ✓
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center mb-2 pr-4">
                       <div className="flex items-center gap-2">
                         <Zap className="h-4.5 w-4.5 text-blue-500 group-hover:scale-110 transition-transform" />
                         <span className="font-bold text-blue-600 dark:text-blue-400 text-sm">Mistral Large</span>
                       </div>
-                      <Badge variant="outline" className="text-[9px] font-semibold bg-background/50 border-blue-500/20 text-blue-600 dark:text-blue-400 px-1.5 py-0">Free</Badge>
+                      <Badge variant="outline" className={`text-[9px] font-semibold px-1.5 py-0 transition-all ${
+                        model === 'mistralai/mistral-large'
+                          ? 'bg-blue-500/20 border-blue-500/30 text-blue-400'
+                          : 'bg-background/50 border-blue-500/20 text-blue-600 dark:text-blue-400'
+                      }`}>Free</Badge>
                     </div>
                     <span className="text-xs text-muted-foreground leading-relaxed mt-1">Fast responses. Great for behavioral questions.</span>
                   </Label>
@@ -211,7 +239,7 @@ export function NewSessionModal() {
                   <div className="flex flex-col text-left">
                     <span className="text-sm font-bold text-red-600 dark:text-red-400">You need credits to start</span>
                     <span className="text-xs text-red-600/80 dark:text-red-400/80 mt-1">Each session uses 0.5 credits per 30 minutes.</span>
-                    <Link href="/pricing" className="text-xs text-red-600 font-semibold underline mt-2 hover:text-red-700 transition-colors">Get credits</Link>
+                    <Link href="/dashboard" className="text-xs text-red-600 font-semibold underline mt-2 hover:text-red-700 transition-colors">Get credits</Link>
                   </div>
                 </div>
               ) : (

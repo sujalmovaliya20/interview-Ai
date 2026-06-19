@@ -144,7 +144,7 @@ export function SettingsClient({ profile, credits, email }: SettingsClientProps)
             </Button>
             <Button 
               nativeButton={false} 
-              render={<Link href="/pricing" />}
+              render={<Link href="/dashboard" />}
               className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white shadow-md shadow-violet-500/10 hover:shadow-lg hover:shadow-violet-500/20 transition-all rounded-xl font-semibold"
             >
               Buy credits
