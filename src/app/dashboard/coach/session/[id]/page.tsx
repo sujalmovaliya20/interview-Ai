@@ -27,7 +27,7 @@ export default async function CoachSessionPage({ params }: Params) {
   }
 
   return (
-    <div className="p-6 lg:p-8 w-full max-w-4xl mx-auto min-h-screen flex flex-col">
+    <div className="p-4 sm:p-6 lg:p-8 w-full max-w-4xl mx-auto min-h-screen flex flex-col">
       <CoachSessionClient 
         sessionId={session.id} 
         initialSession={session} 

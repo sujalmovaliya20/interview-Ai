@@ -6,6 +6,7 @@ import { Video, Zap, Clock, ArrowRight, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Session, Credits } from '@/types'
+import { OnboardingTour } from '@/components/dashboard/OnboardingTour'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -101,6 +102,9 @@ export default async function DashboardPage() {
           <SessionsTable sessions={(recentSessions as Session[]) || []} />
         </div>
       )}
+
+      {/* Onboarding Tour */}
+      <OnboardingTour />
     </div>
   )
 }

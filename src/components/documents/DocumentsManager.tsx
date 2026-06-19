@@ -76,27 +76,27 @@ export function DocumentsManager({ initialDocuments, userId }: DocumentsManagerP
 
       {/* SECTION 1: Resume */}
       <section className="glass-card overflow-hidden">
-        <div className="p-5 border-b border-white/[0.06] flex items-center gap-3 bg-white/[0.01]">
+        <div className="p-5 border-b border-border flex items-center gap-3 bg-muted/10">
           <div className="p-2.5 bg-gradient-to-tr from-violet-500/15 to-indigo-500/15 border border-violet-500/15 rounded-xl">
-            <Crown className="w-5 h-5 text-violet-400" />
+            <Crown className="w-5 h-5 text-violet-500 dark:text-violet-400" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-zinc-100">Resume</h2>
-            <p className="text-sm text-zinc-500">Used as primary context in every session</p>
+            <h2 className="text-lg font-semibold text-foreground">Resume</h2>
+            <p className="text-sm text-muted-foreground">Used as primary context in every session</p>
           </div>
         </div>
         <div className="p-6">
           {resume ? (
             <div className="space-y-4">
               <DocumentCard document={resume} onDelete={handleDelete} />
-              <div className="pt-4 border-t border-white/[0.06] border-dashed">
-                <p className="text-sm text-zinc-500 mb-3 font-medium">Replace resume</p>
+              <div className="pt-4 border-t border-border border-dashed">
+                <p className="text-sm text-muted-foreground mb-3 font-medium">Replace resume</p>
                 <DocUpload isResume={true} onUploadComplete={handleUploadComplete} />
               </div>
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="text-sm text-zinc-500 mb-4">Upload your resume to get personalised AI answers tailored to your experience.</p>
+              <p className="text-sm text-muted-foreground mb-4">Upload your resume to get personalised AI answers tailored to your experience.</p>
               <DocUpload isResume={true} onUploadComplete={handleUploadComplete} />
             </div>
           )}
@@ -105,17 +105,17 @@ export function DocumentsManager({ initialDocuments, userId }: DocumentsManagerP
 
       {/* SECTION 2: Supporting Documents */}
       <section className="glass-card overflow-hidden">
-        <div className="p-5 border-b border-white/[0.06] flex items-center justify-between bg-white/[0.01]">
+        <div className="p-5 border-b border-border flex items-center justify-between bg-muted/10">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-gradient-to-tr from-indigo-500/15 to-blue-500/15 border border-indigo-500/15 rounded-xl">
-              <FileText className="w-5 h-5 text-indigo-400" />
+              <FileText className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-zinc-100">Context Documents</h2>
-              <p className="text-sm text-zinc-500">Add files like job descriptions, company info, or notes</p>
+              <h2 className="text-lg font-semibold text-foreground">Context Documents</h2>
+              <p className="text-sm text-muted-foreground">Add files like job descriptions, company info, or notes</p>
             </div>
           </div>
-          <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-violet-500/10 text-violet-400 border border-violet-500/15">
+          <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-violet-500/10 text-violet-600 dark:text-violet-300 border border-violet-500/15">
             {otherDocs.length} / 10
           </span>
         </div>
@@ -130,8 +130,8 @@ export function DocumentsManager({ initialDocuments, userId }: DocumentsManagerP
               />
             ))}
             {otherDocs.length === 0 && (
-              <div className="text-center py-10 text-zinc-500 bg-white/[0.02] rounded-xl border border-white/[0.06] border-dashed">
-                <FileText className="h-8 w-8 mx-auto mb-3 text-zinc-600" />
+              <div className="text-center py-10 text-muted-foreground bg-transparent rounded-xl border border-border border-dashed">
+                <FileText className="h-8 w-8 mx-auto mb-3 text-muted-foreground/60" />
                 <p className="text-sm">No documents yet. Add files to help AI tailor answers.</p>
               </div>
             )}

@@ -655,7 +655,8 @@ class CoachAgentRunner:
         "improvements": new_state["evaluation"].get("improvements", []),
         "filler_words": new_state["evaluation"].get("filler_word_count", 0)
       },
-      "session_complete": new_state["status"] == "completed"
+      "session_complete": new_state["status"] == "completed",
+      "total_questions": new_state.get("max_questions", 5)
     }
 
     if new_state["status"] == "completed":

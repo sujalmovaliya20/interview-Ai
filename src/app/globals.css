@@ -253,11 +253,16 @@
 
   /* Glassmorphism card */
   .glass-card {
-    background: oklch(0.205 0 0 / 40%);
+    background: oklch(1 0 0 / 40%);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid oklch(1 0 0 / 6%);
+    border: 1px solid oklch(0 0 0 / 6%);
     border-radius: 1rem;
+  }
+
+  :is(.dark *) .glass-card {
+    background: oklch(0.205 0 0 / 40%);
+    border: 1px solid oklch(1 0 0 / 6%);
   }
 
   .glass-card-hover {
@@ -271,10 +276,15 @@
 
   /* Gradient text */
   .gradient-text {
-    background: linear-gradient(to right, oklch(0.985 0 0), oklch(0.708 0 0));
+    background-image: linear-gradient(to right, oklch(0.145 0 0), oklch(0.4 0 0));
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  :is(.dark *) .gradient-text {
+    background-image: linear-gradient(to right, oklch(0.985 0 0), oklch(0.708 0 0));
   }
 
   .gradient-text-violet {
@@ -333,10 +343,16 @@
     pointer-events: none;
     z-index: 0;
     background-image:
-      linear-gradient(to right, oklch(1 0 0 / 2%) 1px, transparent 1px),
-      linear-gradient(to bottom, oklch(1 0 0 / 2%) 1px, transparent 1px);
+      linear-gradient(to right, oklch(0 0 0 / 4%) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(0 0 0 / 4%) 1px, transparent 1px);
     background-size: 48px 48px;
     mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, #000 70%, transparent 100%);
     -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 0%, #000 70%, transparent 100%);
+  }
+
+  :is(.dark *) .dashboard-grid {
+    background-image:
+      linear-gradient(to right, oklch(1 0 0 / 2%) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(1 0 0 / 2%) 1px, transparent 1px);
   }
 }

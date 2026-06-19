@@ -49,13 +49,13 @@ export function Header({
   }
 
   return (
-    <header className="lg:hidden h-14 border-b border-white/[0.06] flex items-center justify-between px-4 bg-[#0a0a0c]/90 backdrop-blur-xl shrink-0 relative z-20">
+    <header className="lg:hidden h-14 border-b border-border flex items-center justify-between px-4 bg-card/90 backdrop-blur-xl shrink-0 relative z-20">
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger render={<Button variant="ghost" size="icon" className="shrink-0 text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.06]" />}>
+        <SheetTrigger render={<Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent" />}>
           <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle menu</span>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 w-72 bg-[#0a0a0c] border-r border-white/[0.06]">
+        <SheetContent side="left" className="p-0 w-72 bg-card border-r border-border">
           <SheetHeader className="sr-only">
             <SheetTitle>Navigation Menu</SheetTitle>
           </SheetHeader>
@@ -63,7 +63,7 @@ export function Header({
         </SheetContent>
       </Sheet>
 
-      <h1 className="text-sm font-semibold truncate flex-1 text-center px-4 text-zinc-200">
+      <h1 className="text-sm font-semibold truncate flex-1 text-center px-4 text-foreground">
         {title}
       </h1>
 
@@ -84,15 +84,15 @@ export function Header({
               )}
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 bg-[#0f0f12] border-white/[0.08] backdrop-blur-xl">
+          <DropdownMenuContent align="end" className="w-56 bg-popover border-border backdrop-blur-xl">
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-zinc-400">My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-white/[0.06]" />
-              <DropdownMenuItem onClick={() => router.push('/dashboard/settings')} className="text-zinc-300 focus:bg-white/[0.06] focus:text-white">
+              <DropdownMenuLabel className="text-muted-foreground">My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-border" />
+              <DropdownMenuItem onClick={() => router.push('/dashboard/settings')} className="text-foreground focus:bg-accent focus:text-accent-foreground">
                 <Settings2 className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSignOut} className="text-red-400 focus:bg-red-500/10 focus:text-red-300">
+              <DropdownMenuItem onClick={handleSignOut} className="text-red-500 dark:text-red-400 focus:bg-red-500/10 focus:text-red-500 dark:focus:text-red-400">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Sign out</span>
               </DropdownMenuItem>

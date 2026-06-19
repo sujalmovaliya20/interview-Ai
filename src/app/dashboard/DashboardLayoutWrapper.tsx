@@ -54,7 +54,7 @@ export function DashboardLayoutWrapper({ children, sidebar, header }: DashboardL
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#030303] w-full">
+    <div className="flex h-screen overflow-hidden bg-background text-foreground w-full">
       {/* Ambient background effects */}
       <div className="dashboard-ambient" />
       <div className="dashboard-grid" />
