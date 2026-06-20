@@ -1,13 +1,8 @@
--- Add Google OAuth fields to profiles table
-ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS full_name text,
-  ADD COLUMN IF NOT EXISTS avatar_url text,
-  ADD COLUMN IF NOT EXISTS provider text DEFAULT 'email';
-
--- Drop NOT NULL constraint on email column to support providers without public emails
+-- Migration: Fix profiles email NOT NULL constraint and handle_new_user trigger
+-- Dropping the NOT NULL constraint on email column to support OAuth signups without public emails
 ALTER TABLE public.profiles ALTER COLUMN email DROP NOT NULL;
 
--- Update handle_new_user trigger to handle OAuth metadata
+-- Recreate the trigger function to safely handle null emails and extract from metadata
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
@@ -30,9 +25,3 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Ensure trigger exists
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-CREATE TRIGGER on_auth_user_created
-  AFTER INSERT ON auth.users
-  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();

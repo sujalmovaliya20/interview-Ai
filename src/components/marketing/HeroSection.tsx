@@ -74,7 +74,7 @@ export function HeroSection() {
         </div>
 
         {/* Interactive Overlay Simulator Demo */}
-        <div className="mb-16 sm:mb-28 -mx-2 sm:mx-0">
+        <div className="mb-16 sm:mb-28 -mx-2 sm:mx-0 animate-scale-in">
           <OverlaySimulator />
         </div>
 
