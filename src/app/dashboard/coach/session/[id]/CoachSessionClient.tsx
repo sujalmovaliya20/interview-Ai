@@ -199,8 +199,6 @@ export function CoachSessionClient({ sessionId, initialSession }: CoachSessionCl
     router.push('/dashboard/coach')
   }
 
-  const progressPct = (questionNumber / totalQuestions) * 100
-
   return (
     <div className="space-y-5 flex-1 flex flex-col justify-between animate-scale-in">
       {/* ── Top Meta Row ── */}
@@ -209,16 +207,25 @@ export function CoachSessionClient({ sessionId, initialSession }: CoachSessionCl
           <span className="text-[13px] font-medium uppercase tracking-[0.03em] text-zinc-300 block mb-0.5">Target role</span>
           <p className="text-[17px] font-medium text-foreground">{initialSession.role}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-[14px] font-normal text-zinc-300">
-            Question <span className="text-foreground font-medium">{questionNumber}</span> of <span className="text-foreground font-medium">{totalQuestions}</span>
-          </span>
-          <div className="min-w-[100px] sm:min-w-[140px] h-[5px] bg-zinc-800 rounded-full overflow-hidden">
+        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+          <div className="text-left sm:text-right">
+            <span className="text-xs text-muted-foreground/60">Question</span>
+            <p className="text-sm font-bold text-foreground">{questionNumber} of {totalQuestions}</p>
+          </div>
+          {/* Progress bar */}
+          <div className="w-24 h-2 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
             <div
-              className="h-full bg-violet-600 rounded-full transition-all duration-300"
-              style={{ width: `${progressPct}%` }}
+              className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-300"
+              style={{ width: `${(questionNumber / totalQuestions) * 100}%` }}
             />
           </div>
+          <Button
+            variant="ghost"
+            onClick={handleCancelInterview}
+            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl px-4 h-9 text-[13px] font-medium transition-all cursor-pointer"
+          >
+            <i className="ti ti-x text-[14px] mr-1.5" /> Cancel Interview
+          </Button>
         </div>
       </div>
 
@@ -245,12 +252,12 @@ export function CoachSessionClient({ sessionId, initialSession }: CoachSessionCl
                   {/* Glowing orbital ring */}
                   <div className="absolute -inset-4 rounded-full border border-violet-500/20 animate-spin" style={{ animationDuration: '3s' }} />
                   <div className="absolute -inset-2 rounded-full border border-dashed border-violet-500/35 animate-spin" style={{ animationDuration: '6s', animationDirection: 'reverse' }} />
-                  
+
                   {/* Interviewer avatar container */}
                   <div className="relative z-10 w-24 h-24 rounded-full bg-violet-600/10 border border-violet-500/20 flex items-center justify-center shadow-xl shadow-violet-500/5">
                     <i className="ti ti-user-scan text-[40px] text-violet-400" />
                   </div>
-                  
+
                   {/* Thinking bubble dots */}
                   <div className="absolute -top-1 -right-3 bg-zinc-800 border border-white/[0.08] px-3.5 py-2 rounded-full flex items-center gap-1 shadow-xl z-20">
                     <span className="w-2.5 h-2.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0s' }} />
@@ -258,14 +265,14 @@ export function CoachSessionClient({ sessionId, initialSession }: CoachSessionCl
                     <span className="w-2.5 h-2.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0.3s' }} />
                   </div>
                 </div>
-                
+
                 <div className="text-center space-y-2">
                   <h4 className="text-[16px] font-medium text-foreground">AI Interviewer is thinking…</h4>
                   <p className="text-[14px] text-zinc-400 max-w-[300px] leading-relaxed mx-auto">
                     Formulating thoughts, scoring technical vocabulary, and analyzing STAR methodology structure.
                   </p>
                 </div>
-                
+
                 {/* Thinking steps checklist */}
                 <div className="w-full max-w-[300px] bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 space-y-3">
                   <div className="flex items-center gap-3 text-[13px]">
@@ -303,16 +310,15 @@ export function CoachSessionClient({ sessionId, initialSession }: CoachSessionCl
                         <span className="absolute -inset-3 rounded-full bg-red-500/10 animate-pulse" />
                       </>
                     )}
-                    
+
                     <button
                       type="button"
                       onClick={handleToggleRecord}
                       disabled={isSubmitting || isTranscribing}
-                      className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center border transition-all duration-300 cursor-pointer shadow-lg hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-violet-500/40 ${
-                        isRecording
+                      className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center border transition-all duration-300 cursor-pointer shadow-lg hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-violet-500/40 ${isRecording
                           ? 'bg-red-500 border-red-400 text-white shadow-red-500/30'
                           : 'bg-violet-600 hover:bg-violet-500 border-violet-500/30 text-white shadow-violet-600/20'
-                      }`}
+                        }`}
                     >
                       <i className={`ti ${isRecording ? 'ti-microphone-off' : 'ti-microphone'} text-[30px]`} />
                     </button>
