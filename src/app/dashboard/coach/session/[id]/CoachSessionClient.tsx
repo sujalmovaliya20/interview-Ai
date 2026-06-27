@@ -4,22 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { useAudioCapture } from '@/hooks/useAudioCapture'
-import { 
-  BrainCircuit, 
-  Mic, 
-  MicOff, 
-  Sparkles, 
-  ChevronRight, 
-  CheckCircle2, 
-  AlertCircle, 
-  ArrowRight,
-  TrendingUp,
-  Award,
-  Zap,
-  Check,
-  RotateCcw,
-  MessageSquare
-} from 'lucide-react'
+import { getScoreVariant, variantStyles, getReadinessVariant } from '@/lib/scoreVariant'
 import { toast } from 'sonner'
 
 interface CoachSessionClientProps {
@@ -32,16 +17,6 @@ interface CoachSessionClientProps {
   }
 }
 
-const getScoreColor = (score: number) => {
-  if (score >= 7.5) {
-    return 'bg-emerald-500/5 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/10 dark:border-emerald-500/20'
-  }
-  if (score >= 5.0) {
-    return 'bg-amber-500/5 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/10 dark:border-amber-500/20'
-  }
-  return 'bg-red-500/5 dark:bg-red-500/10 text-red-750 dark:text-red-400 border-red-500/10 dark:border-red-500/20'
-}
-
 export function CoachSessionClient({ sessionId, initialSession }: CoachSessionClientProps) {
   const router = useRouter()
   const [questionText, setQuestionText] = useState('')
@@ -50,7 +25,7 @@ export function CoachSessionClient({ sessionId, initialSession }: CoachSessionCl
   const [answerText, setAnswerText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isTranscribing, setIsTranscribing] = useState(false)
-  
+
   // Feedback states
   const [feedback, setFeedback] = useState<any>(null)
   const [showFeedback, setShowFeedback] = useState(false)
@@ -61,12 +36,12 @@ export function CoachSessionClient({ sessionId, initialSession }: CoachSessionCl
   const chunksRef = useRef<ArrayBuffer[]>([])
 
   // Audio capture hook
-  const { 
-    start: startAudio, 
-    stop: stopAudio, 
-    isRecording, 
-    audioLevel, 
-    error: audioError 
+  const {
+    start: startAudio,
+    stop: stopAudio,
+    isRecording,
+    audioLevel,
+    error: audioError
   } = useAudioCapture({
     onChunk: (buffer) => {
       chunksRef.current.push(buffer)
@@ -224,331 +199,400 @@ export function CoachSessionClient({ sessionId, initialSession }: CoachSessionCl
     router.push('/dashboard/coach')
   }
 
+  const progressPct = (questionNumber / totalQuestions) * 100
+
   return (
-    <div className="space-y-6 flex-1 flex flex-col justify-between animate-scale-in">
-      {/* Top Navigation & Status */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
-        <div className="space-y-1">
-          <h2 className="text-sm font-medium text-muted-foreground">Target Role: <span className="text-foreground font-semibold">{initialSession.role}</span></h2>
-          <p className="text-xs text-muted-foreground/80 capitalize">
-            Mode: {initialSession.session_type.split('_').filter(p => isNaN(Number(p))).join(' ')} Interview
-          </p>
+    <div className="space-y-5 flex-1 flex flex-col justify-between animate-scale-in">
+      {/* ── Top Meta Row ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span className="text-[13px] font-medium uppercase tracking-[0.03em] text-zinc-300 block mb-0.5">Target role</span>
+          <p className="text-[17px] font-medium text-foreground">{initialSession.role}</p>
         </div>
-        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
-          <div className="text-left sm:text-right">
-            <span className="text-xs text-muted-foreground/60">Question</span>
-            <p className="text-sm font-bold text-foreground">{questionNumber} of {totalQuestions}</p>
-          </div>
-          {/* Progress bar */}
-          <div className="w-24 h-2 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 transition-all duration-300"
-              style={{ width: `${(questionNumber / totalQuestions) * 100}%` }}
+        <div className="flex items-center gap-3">
+          <span className="text-[14px] font-normal text-zinc-300">
+            Question <span className="text-foreground font-medium">{questionNumber}</span> of <span className="text-foreground font-medium">{totalQuestions}</span>
+          </span>
+          <div className="min-w-[100px] sm:min-w-[140px] h-[5px] bg-zinc-800 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-violet-600 rounded-full transition-all duration-300"
+              style={{ width: `${progressPct}%` }}
             />
           </div>
         </div>
       </div>
 
-      {/* Main Workspace: grid items align stretch for side-by-side cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 items-stretch my-auto">
-        
-        {/* Left Column: Question and Input (or Answer review) */}
-        <div className={`${showFeedback ? 'lg:col-span-6' : 'lg:col-span-12'} flex transition-all duration-300`}>
-          <div className="glass-card p-4 sm:p-6 md:p-8 border-violet-500/15 flex flex-col justify-between w-full">
-            <div className="space-y-6">
-              {/* Question Header */}
-              <div className="flex items-center justify-between border-b border-border pb-4">
-                <span className="text-xs font-bold tracking-wider text-violet-500 dark:text-violet-400 uppercase flex items-center gap-1.5">
-                  <BrainCircuit className="h-4.5 w-4.5 animate-pulse" /> Current Question
-                </span>
-                <span className="text-xs font-semibold text-muted-foreground">
-                  Question {questionNumber} of {totalQuestions}
-                </span>
-              </div>
+      {/* ── Two-Column Layout ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.15fr] gap-5 items-stretch flex-1">
 
-              {/* Question Display */}
-              <div className="space-y-3">
-                <h3 className="text-xl md:text-2xl font-extrabold text-foreground leading-relaxed tracking-tight">
-                  {questionText || 'Generating Question...'}
-                </h3>
-              </div>
-
-              {/* Conditional Display: Textarea for input or beautiful review panel for submitted response */}
-              {!showFeedback ? (
-                <div className="space-y-3 pt-2">
-                  <label className="text-xs font-bold text-foreground uppercase tracking-wider">Your Answer</label>
-                  <textarea
-                    placeholder="Click the microphone below to speak your answer, or type it directly..."
-                    value={answerText}
-                    onChange={(e) => setAnswerText(e.target.value)}
-                    disabled={isSubmitting}
-                    className="w-full min-h-[200px] p-4 rounded-xl border border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-sm leading-relaxed"
-                  />
-                </div>
-              ) : (
-                <div className="space-y-3 border-t border-border pt-5">
-                  <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                    <MessageSquare className="h-3.5 w-3.5" /> Your Response
-                  </h4>
-                  <div className="border-l-3 border-violet-500/50 bg-muted/20 hover:bg-muted/40 p-4 rounded-xl transition-all duration-300 max-h-[300px] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                      {answerText}
-                    </p>
-                  </div>
-                </div>
-              )}
+        {/* ── Left Card: Current Question + Answer ── */}
+        <div className="bg-zinc-900/60 border border-white/[0.08] rounded-xl p-4 sm:p-6 flex flex-col justify-between">
+          <div className="space-y-5">
+            {/* Eyebrow */}
+            <div className="flex items-center gap-1.5">
+              <i className="ti ti-message-circle-question text-[16px] text-violet-400" />
+              <span className="text-[13px] font-medium uppercase tracking-[0.03em] text-violet-400">Current question</span>
             </div>
 
-            {/* Bottom Actions for Left Column (Mic and Submit) - only visible during writing mode */}
-            {!showFeedback && (
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-6 border-t border-border mt-6 w-full">
-                {/* Record button and status / levels */}
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  {/* Record Button */}
-                  <button
-                    type="button"
-                    onClick={handleToggleRecord}
-                    disabled={isSubmitting || isTranscribing}
-                    className={`h-12 w-12 rounded-xl flex items-center justify-center border transition-all duration-300 shrink-0 cursor-pointer ${
-                      isRecording 
-                        ? 'bg-red-550/10 dark:bg-red-500/20 border-red-500/30 dark:border-red-500/40 text-red-650 dark:text-red-400 animate-pulse' 
-                        : 'bg-violet-500/10 border-violet-500/20 text-violet-600 dark:text-violet-400 hover:bg-violet-500/20'
-                    }`}
-                  >
-                    {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                  </button>
-
-                  {/* Progress bar visual for recording audio level */}
-                  {isRecording && (
-                    <div className="flex-1 flex items-center gap-2.5 min-w-0">
-                      <span className="text-xs text-red-650 dark:text-red-400 font-semibold animate-pulse whitespace-nowrap">Recording...</span>
-                      <div className="flex-1 h-2 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-red-550 transition-all duration-100" 
-                          style={{ width: `${audioLevel}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {isTranscribing && (
-                    <span className="text-xs text-muted-foreground animate-pulse flex-1 truncate">Transcribing speech...</span>
-                  )}
-
-                  {!isRecording && !isTranscribing && (
-                    <div className="flex-1 text-xs text-muted-foreground leading-normal">
-                      Speak or type your response. Click mic to record.
-                    </div>
-                  )}
+            {/* Question text */}
+            <h3 className="text-[18px] font-medium leading-[1.5] text-foreground">
+              {questionText || 'Generating question…'}
+            </h3>
+            {isSubmitting ? (
+              /* ── Premium Interviewer Thinking Loader ── */
+              <div className="flex flex-col items-center justify-center py-12 space-y-6 border-t border-white/[0.06] pt-8 animate-fade-in w-full">
+                <div className="relative">
+                  {/* Glowing orbital ring */}
+                  <div className="absolute -inset-4 rounded-full border border-violet-500/20 animate-spin" style={{ animationDuration: '3s' }} />
+                  <div className="absolute -inset-2 rounded-full border border-dashed border-violet-500/35 animate-spin" style={{ animationDuration: '6s', animationDirection: 'reverse' }} />
+                  
+                  {/* Interviewer avatar container */}
+                  <div className="relative z-10 w-24 h-24 rounded-full bg-violet-600/10 border border-violet-500/20 flex items-center justify-center shadow-xl shadow-violet-500/5">
+                    <i className="ti ti-user-scan text-[40px] text-violet-400" />
+                  </div>
+                  
+                  {/* Thinking bubble dots */}
+                  <div className="absolute -top-1 -right-3 bg-zinc-800 border border-white/[0.08] px-3.5 py-2 rounded-full flex items-center gap-1 shadow-xl z-20">
+                    <span className="w-2.5 h-2.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0s' }} />
+                    <span className="w-2.5 h-2.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0.15s' }} />
+                    <span className="w-2.5 h-2.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0.3s' }} />
+                  </div>
                 </div>
+                
+                <div className="text-center space-y-2">
+                  <h4 className="text-[16px] font-medium text-foreground">AI Interviewer is thinking…</h4>
+                  <p className="text-[14px] text-zinc-400 max-w-[300px] leading-relaxed mx-auto">
+                    Formulating thoughts, scoring technical vocabulary, and analyzing STAR methodology structure.
+                  </p>
+                </div>
+                
+                {/* Thinking steps checklist */}
+                <div className="w-full max-w-[300px] bg-white/[0.02] border border-white/[0.04] rounded-xl p-4 space-y-3">
+                  <div className="flex items-center gap-3 text-[13px]">
+                    <i className="ti ti-loader text-[16px] text-violet-400 animate-spin" />
+                    <span className="text-zinc-200">Evaluating response depth…</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[13px] text-zinc-500">
+                    <i className="ti ti-circle text-[16px]" />
+                    <span>Scoring delivery confidence</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-[13px] text-zinc-500">
+                    <i className="ti ti-circle text-[16px]" />
+                    <span>Structuring coaching report</span>
+                  </div>
+                </div>
+              </div>
+            ) : !showFeedback ? (
+              <div className="space-y-4 border-t border-white/[0.06] pt-4">
+                <label className="text-[13px] font-medium uppercase tracking-[0.03em] text-zinc-300 block">Your answer</label>
+                <textarea
+                  placeholder="Click the microphone below to speak your answer, or type it directly…"
+                  value={answerText}
+                  onChange={(e) => setAnswerText(e.target.value)}
+                  disabled={isSubmitting}
+                  className="w-full min-h-[160px] p-4 rounded-xl border border-white/[0.08] bg-white/[0.04] text-foreground placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500/30 text-[14px] font-normal leading-[1.5]"
+                />
 
-                <Button
-                  onClick={handleSubmitAnswer}
-                  disabled={isSubmitting || isRecording || isTranscribing}
-                  size="lg"
-                  className="w-full sm:w-auto bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-xl font-bold px-6 shadow-lg hover:shadow-lg transition-all duration-300 h-12 cursor-pointer shrink-0"
-                >
-                  {isSubmitting ? (
-                    <span className="flex items-center gap-2 justify-center">
-                      <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Evaluating...
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2 justify-center">
-                      Submit Answer <ArrowRight className="h-4.5 w-4.5" />
-                    </span>
-                  )}
-                </Button>
+                {/* ── Centered Interactive Mic Button ── */}
+                <div className="flex flex-col items-center justify-center py-4 space-y-3.5 w-full border-t border-dashed border-white/[0.06] mt-2">
+                  <div className="relative flex items-center justify-center">
+                    {/* Glowing outer ring when recording */}
+                    {isRecording && (
+                      <>
+                        <span className="absolute inset-0 rounded-full bg-red-500/25 animate-ping" style={{ animationDuration: '1.5s' }} />
+                        <span className="absolute -inset-3 rounded-full bg-red-500/10 animate-pulse" />
+                      </>
+                    )}
+                    
+                    <button
+                      type="button"
+                      onClick={handleToggleRecord}
+                      disabled={isSubmitting || isTranscribing}
+                      className={`relative z-10 w-20 h-20 rounded-full flex items-center justify-center border transition-all duration-300 cursor-pointer shadow-lg hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-violet-500/40 ${
+                        isRecording
+                          ? 'bg-red-500 border-red-400 text-white shadow-red-500/30'
+                          : 'bg-violet-600 hover:bg-violet-500 border-violet-500/30 text-white shadow-violet-600/20'
+                      }`}
+                    >
+                      <i className={`ti ${isRecording ? 'ti-microphone-off' : 'ti-microphone'} text-[30px]`} />
+                    </button>
+                  </div>
+
+                  {/* Micro-animations and sound-wave visualization */}
+                  <div className="text-center min-h-[44px] flex flex-col items-center justify-center">
+                    {isRecording && (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1.5 justify-center">
+                          <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                          <span className="text-[13px] font-medium text-red-400">Recording…</span>
+                        </div>
+                        {/* Animated Sound Wave */}
+                        <div className="flex items-end gap-1 h-6 justify-center">
+                          <span className="w-[3px] bg-red-400 rounded-full animate-wave" style={{ animationDelay: '0.1s', height: '10px' }} />
+                          <span className="w-[3px] bg-red-400 rounded-full animate-wave" style={{ animationDelay: '0.3s', height: '14px' }} />
+                          <span className="w-[3px] bg-red-400 rounded-full animate-wave" style={{ animationDelay: '0.5s', height: '22px' }} />
+                          <span className="w-[3px] bg-red-400 rounded-full animate-wave" style={{ animationDelay: '0.3s', height: '14px' }} />
+                          <span className="w-[3px] bg-red-400 rounded-full animate-wave" style={{ animationDelay: '0.1s', height: '10px' }} />
+                        </div>
+                      </div>
+                    )}
+
+                    {isTranscribing && (
+                      <div className="flex items-center gap-2 text-zinc-300 animate-pulse">
+                        <svg className="animate-spin h-4 w-4 text-zinc-300" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        <span className="text-[13px] font-medium">Transcribing speech…</span>
+                      </div>
+                    )}
+
+                    {!isRecording && !isTranscribing && (
+                      <span className="text-[13px] font-normal text-zinc-400 block max-w-[280px] leading-relaxed">
+                        Tap the microphone to speak your answer, or type it directly above.
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3 border-t border-white/[0.06] pt-4">
+                <span className="text-[13px] font-medium uppercase tracking-[0.03em] text-zinc-300 block">Your response</span>
+                <div className="bg-zinc-800/40 rounded-lg p-3 max-h-[300px] overflow-y-auto">
+                  <p className="text-[14px] font-normal leading-[1.5] text-zinc-200 whitespace-pre-wrap">
+                    {answerText}
+                  </p>
+                </div>
               </div>
             )}
           </div>
+
+          {/* Bottom Actions — only during writing mode */}
+          {!showFeedback && (
+            <div className="flex items-center justify-end pt-5 border-t border-white/[0.06] mt-5 w-full">
+              <Button
+                onClick={handleSubmitAnswer}
+                disabled={isSubmitting || isRecording || isTranscribing}
+                className="w-full sm:w-auto bg-violet-600 hover:bg-violet-500 text-white rounded-xl font-medium px-6 h-11 cursor-pointer shrink-0 text-[14px] transition-colors"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2 justify-center">
+                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Evaluating…
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2 justify-center">
+                    Submit answer <i className="ti ti-arrow-right text-[15px]" />
+                  </span>
+                )}
+              </Button>
+            </div>
+          )}
         </div>
 
-        {/* Right Column: Feedback / Evaluation Card */}
+        {/* ── Right Card: Evaluation (only visible after submission) ── */}
         {showFeedback && (
-          <div className="lg:col-span-6 flex transition-all duration-300">
-            <div className="glass-card p-4 sm:p-6 md:p-8 border-violet-500/15 flex flex-col justify-between w-full">
-              <div className="space-y-6">
-                
-                {/* Answer Evaluated Header */}
-                <div className="flex items-center justify-between border-b border-border pb-4">
-                  <span className="text-xs font-bold tracking-wider text-emerald-600 dark:text-emerald-400 uppercase flex items-center gap-1.5">
-                    <CheckCircle2 className="h-4.5 w-4.5 animate-pulse" /> Answer Evaluation
+          <div className="bg-zinc-900/60 border border-white/[0.08] rounded-xl p-4 sm:p-6 flex flex-col justify-between">
+            <div className="space-y-5">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <i className="ti ti-check-circle text-[15px] text-emerald-400" />
+                  <span className="text-[13px] font-medium uppercase tracking-[0.03em] text-emerald-400">Answer evaluation</span>
+                </div>
+                {feedback.evaluation.filler_words > 0 && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    {feedback.evaluation.filler_words} filler words
                   </span>
-                  {feedback.evaluation.filler_words > 0 && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20">
-                      {feedback.evaluation.filler_words} Filler Words
-                    </span>
-                  )}
-                </div>
-
-                {/* Scores Grid - Dynamic Color Coding */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[
-                    { label: 'STAR structure', val: feedback.evaluation.star_score },
-                    { label: 'Clarity', val: feedback.evaluation.clarity_score },
-                    { label: 'Technical', val: feedback.evaluation.technical_score },
-                    { label: 'Confidence', val: feedback.evaluation.confidence_score },
-                  ].map((metric, idx) => {
-                    const score = metric.val !== undefined && metric.val !== null ? Number(metric.val) : 5.0
-                    const colorClasses = getScoreColor(score)
-                    return (
-                      <div key={idx} className={`border p-3 rounded-xl text-center space-y-1 transition-all duration-300 ${colorClasses}`}>
-                        <span className="text-[9px] font-bold text-muted-foreground/80 uppercase tracking-wider block">{metric.label}</span>
-                        <p className="text-base font-extrabold tracking-tight">{score.toFixed(1)}/10</p>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* Evaluation strengths & weaknesses lists */}
-                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
-                  {/* Strengths */}
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Strengths</h4>
-                    {feedback.evaluation.strengths && feedback.evaluation.strengths.length > 0 ? (
-                      <ul className="text-xs text-foreground space-y-2.5">
-                        {feedback.evaluation.strengths.map((s: string, idx: number) => (
-                          <li key={idx} className="flex gap-2 items-start">
-                            <Check className="h-4 w-4 text-emerald-500 dark:text-emerald-400 shrink-0 mt-0.5" />
-                            <span className="leading-relaxed">{s}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-xs text-muted-foreground italic">No specific strengths listed.</p>
-                    )}
-                  </div>
-
-                  {/* Areas for Improvement */}
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider">Areas for Improvement</h4>
-                    {feedback.evaluation.improvements && feedback.evaluation.improvements.length > 0 ? (
-                      <ul className="text-xs text-foreground space-y-2.5">
-                        {feedback.evaluation.improvements.map((im: string, idx: number) => (
-                          <li key={idx} className="flex gap-2 items-start">
-                            <AlertCircle className="h-4 w-4 text-amber-500 dark:text-amber-400 shrink-0 mt-0.5" />
-                            <span className="leading-relaxed">{im}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-xs text-muted-foreground italic">No improvements noted!</p>
-                    )}
-                  </div>
-
-                  {/* Coach Feedback Callout (Redesigned to be highly visible and legible) */}
-                  <div className="bg-gradient-to-r from-violet-500/[0.02] to-indigo-500/[0.02] dark:from-violet-500/[0.04] dark:to-indigo-500/[0.04] border border-violet-500/10 dark:border-violet-500/20 p-5 rounded-xl space-y-2.5">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-violet-550 dark:text-violet-400 uppercase tracking-wider">
-                      <Sparkles className="h-4 w-4" /> AI Coach Feedback
-                    </div>
-                    <p className="text-sm font-semibold text-foreground leading-relaxed italic">
-                      "{feedback.feedback}"
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="pt-6 border-t border-border flex items-center justify-end mt-6">
-                {sessionComplete ? (
-                  <Button
-                    onClick={handleFinishAndExit}
-                    size="lg"
-                    className="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/10 h-12 cursor-pointer"
-                  >
-                    <Award className="h-5 w-5 mr-2 animate-bounce" /> View Final Report
-                  </Button>
-                ) : (
-                  <Button
-                    onClick={handleNextQuestion}
-                    size="lg"
-                    className="w-full sm:w-auto bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-violet-500/10 h-12 cursor-pointer"
-                  >
-                    Next Question <ChevronRight className="h-4.5 w-4.5 ml-1" />
-                  </Button>
                 )}
               </div>
 
+              {/* Score Grid — color derived from getScoreVariant */}
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: 'STAR structure', val: feedback.evaluation.star_score },
+                  { label: 'Clarity', val: feedback.evaluation.clarity_score },
+                  { label: 'Technical', val: feedback.evaluation.technical_score },
+                  { label: 'Confidence', val: feedback.evaluation.confidence_score },
+                ].map((metric, idx) => {
+                  const score = metric.val !== undefined && metric.val !== null ? Number(metric.val) : 0
+                  const variant = getScoreVariant(score)
+                  const styles = variantStyles[variant]
+                  return (
+                    <div key={idx} className={`border ${styles.border} ${styles.bg} p-3 rounded-xl text-center space-y-1`}>
+                      <span className="text-[13px] font-medium uppercase tracking-[0.03em] text-zinc-300 block">{metric.label}</span>
+                      <p className={`text-[17px] font-medium ${styles.text}`}>{score.toFixed(1)}/10</p>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Strengths & Improvements */}
+              <div className="space-y-5 max-h-[480px] overflow-y-auto pr-1">
+                {/* Strengths */}
+                <div className="space-y-2">
+                  <h4 className="text-[13px] font-medium uppercase tracking-[0.03em] text-emerald-400">Strengths</h4>
+                  {feedback.evaluation.strengths && feedback.evaluation.strengths.length > 0 ? (
+                    <ul className="space-y-2">
+                      {feedback.evaluation.strengths.map((s: string, idx: number) => (
+                        <li key={idx} className="flex gap-2 items-start">
+                          <i className="ti ti-check text-[14px] text-emerald-400 shrink-0 mt-0.5" />
+                          <span className="text-[14px] font-normal leading-[1.5] text-zinc-200">{s}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-[14px] text-zinc-300 italic">No specific strengths listed.</p>
+                  )}
+                </div>
+
+                {/* Areas for Improvement */}
+                <div className="space-y-2">
+                  <h4 className="text-[13px] font-medium uppercase tracking-[0.03em] text-amber-400">Areas for improvement</h4>
+                  {feedback.evaluation.improvements && feedback.evaluation.improvements.length > 0 ? (
+                    <ul className="space-y-2">
+                      {feedback.evaluation.improvements.map((im: string, idx: number) => (
+                        <li key={idx} className="flex gap-2 items-start">
+                          <i className="ti ti-alert-circle text-[14px] text-amber-400 shrink-0 mt-0.5" />
+                          <span className="text-[14px] font-normal leading-[1.5] text-zinc-200">{im}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-[14px] text-zinc-300 italic">No improvements noted!</p>
+                  )}
+                </div>
+
+                {/* AI Coach Feedback */}
+                <div className="bg-violet-500/[0.12] border border-violet-500/20 rounded-lg p-4 space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <i className="ti ti-sparkles text-[15px] text-violet-300 animate-pulse" />
+                    <span className="text-[13px] font-medium uppercase tracking-[0.03em] text-violet-300">AI coach feedback</span>
+                  </div>
+                  <p className="text-[15px] font-normal leading-[1.5] text-zinc-100 italic">
+                    &ldquo;{feedback.feedback}&rdquo;
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <div className="pt-5 border-t border-white/[0.06] mt-5">
+              {sessionComplete ? (
+                <Button
+                  onClick={handleFinishAndExit}
+                  className="w-full bg-violet-600 hover:bg-violet-500 text-white rounded-xl font-medium h-11 cursor-pointer text-[14px] transition-colors"
+                >
+                  <i className="ti ti-check text-[15px] mr-2" /> View Final Report
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleNextQuestion}
+                  className="w-full bg-violet-600 hover:bg-violet-500 text-white rounded-xl font-medium h-11 cursor-pointer text-[14px] transition-colors"
+                >
+                  Next question <i className="ti ti-arrow-right text-[15px] ml-1" />
+                </Button>
+              )}
             </div>
           </div>
         )}
       </div>
 
-      {/* Session Completed Full Report Modal Overlay */}
+      {/* ── Session Report Modal ── */}
       {sessionComplete && report && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-sm">
-          <div className="glass-card max-w-2xl w-full p-5 sm:p-6 border-border space-y-6 overflow-y-auto max-h-[90vh]">
-            <div className="flex items-center gap-3 border-b border-border pb-4">
-              <div className="h-10 w-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                <Award className="h-6 w-6 text-emerald-655 dark:text-emerald-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-zinc-900 rounded-2xl p-8 max-w-[460px] max-w-[92vw] w-full shadow-2xl space-y-5 overflow-y-auto max-h-[90vh]">
+            {/* Header */}
+            <div className="text-center">
+              <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-3.5">
+                <i className="ti ti-check text-[24px] text-emerald-400" />
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-foreground">Interview Session Report</h2>
-                <p className="text-xs text-muted-foreground">Mock interview successfully completed.</p>
-              </div>
+              <h2 className="text-[18px] font-medium text-foreground">Session complete</h2>
+              <p className="text-[14px] text-zinc-300 mt-1">
+                {initialSession.role} · {totalQuestions} questions
+              </p>
             </div>
 
-            {/* Performance Summary Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-muted/50 border border-border p-3.5 rounded-xl text-center space-y-1">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase">Overall Score</span>
-                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{report.overall_score ? `${report.overall_score}/10` : '—'}</p>
+            {/* Stats Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {(() => {
+                const overallScore = report.overall_score ? Number(report.overall_score) : 0
+                const overallVariant = getScoreVariant(overallScore)
+                const overallStyles = variantStyles[overallVariant]
+                return (
+                  <div className="bg-zinc-800/60 rounded-lg p-3.5 text-center">
+                    <span className="text-[13px] font-medium uppercase tracking-[0.03em] text-zinc-300 block mb-1">Overall</span>
+                    <p className={`text-[22px] font-medium ${overallStyles.text}`}>
+                      {report.overall_score ? `${report.overall_score}/10` : '—'}
+                    </p>
+                  </div>
+                )
+              })()}
+              <div className="bg-zinc-800/60 rounded-lg p-3.5 text-center">
+                <span className="text-[13px] font-medium uppercase tracking-[0.03em] text-zinc-300 block mb-1">Level</span>
+                <p className="text-[14px] font-medium text-foreground mt-1">{report.performance_level || 'Competent'}</p>
               </div>
-              <div className="bg-muted/50 border border-border p-3.5 rounded-xl text-center space-y-1">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase">Performance</span>
-                <p className="text-sm font-bold text-foreground pt-1.5">{report.performance_level || 'Competent'}</p>
-              </div>
-              <div className="bg-muted/50 border border-border p-3.5 rounded-xl text-center space-y-1">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase">Readiness</span>
-                <p className="text-sm font-bold text-foreground pt-1.5">{report.interview_readiness || 'Ready'}</p>
-              </div>
+              {(() => {
+                const readiness = report.interview_readiness || 'Ready'
+                const readinessVariant = getReadinessVariant(readiness)
+                const readinessStyles = variantStyles[readinessVariant]
+                return (
+                  <div className="bg-zinc-800/60 rounded-lg p-3.5 text-center">
+                    <span className="text-[13px] font-medium uppercase tracking-[0.03em] text-zinc-300 block mb-1">Readiness</span>
+                    <p className={`text-[14px] font-medium ${readinessStyles.text} mt-1`}>{readiness}</p>
+                  </div>
+                )
+              })()}
             </div>
 
-            {/* Report body strengths & improvements */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <h3 className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Top Strengths</h3>
-                <div className="flex flex-wrap gap-2">
-                  {report.top_strengths && report.top_strengths.map((s: string, idx: number) => (
-                    <span key={idx} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-350 border border-emerald-500/20 dark:border-emerald-500/20">
-                      <Check className="h-3 w-3" /> {s}
-                    </span>
-                  ))}
+            {/* Focus Areas — quiet dots, not pill badges */}
+            <div className="space-y-3">
+              {report.top_strengths && report.top_strengths.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-[13px] font-medium uppercase tracking-[0.03em] text-emerald-400">Strengths</h3>
+                  <div className="space-y-1.5">
+                    {report.top_strengths.map((s: string, idx: number) => (
+                      <div key={idx} className="flex items-start gap-2">
+                        <i className="ti ti-point-filled text-[14px] text-emerald-400 shrink-0 mt-0.5" />
+                        <span className="text-[14px] font-normal leading-[1.5] text-zinc-200">{s}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="text-xs font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider">Top Focus Areas</h3>
-                <div className="flex flex-wrap gap-2">
-                  {report.top_weaknesses && report.top_weaknesses.map((w: string, idx: number) => (
-                    <span key={idx} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-700 dark:text-amber-350 border border-amber-500/20 dark:border-amber-500/20">
-                      <AlertCircle className="h-3 w-3" /> {w}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {report.summary && (
-                <div className="bg-muted/30 border border-border p-4 rounded-xl space-y-1.5">
-                  <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Overall Assessment</h3>
-                  <p className="text-xs text-foreground/90 dark:text-zinc-300 leading-relaxed">{report.summary}</p>
+              )}
+              {report.top_weaknesses && report.top_weaknesses.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-[13px] font-medium uppercase tracking-[0.03em] text-amber-400">Focus areas</h3>
+                  <div className="space-y-1.5">
+                    {report.top_weaknesses.map((w: string, idx: number) => (
+                      <div key={idx} className="flex items-start gap-2">
+                        <i className="ti ti-point-filled text-[14px] text-amber-400 shrink-0 mt-0.5" />
+                        <span className="text-[14px] font-normal leading-[1.5] text-zinc-200">{w}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
 
-            <div className="pt-4 border-t border-border flex justify-end">
-              <Button
-                onClick={handleFinishAndExit}
-                size="lg"
-                className="w-full sm:w-auto bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white rounded-xl font-semibold shadow-md shadow-violet-500/10"
-              >
-                Close & Return to Dashboard
-              </Button>
-            </div>
+            {/* Overall Assessment */}
+            {report.summary && (
+              <div className="bg-zinc-800/40 rounded-lg p-3.5 space-y-1.5">
+                <h3 className="text-[13px] font-medium uppercase tracking-[0.03em] text-zinc-300">Overall assessment</h3>
+                <p className="text-[14px] font-normal leading-[1.5] text-zinc-300">{report.summary}</p>
+              </div>
+            )}
+
+            {/* CTA */}
+            <Button
+              onClick={handleFinishAndExit}
+              className="w-full bg-violet-600 hover:bg-violet-500 text-white rounded-xl font-medium h-11 cursor-pointer text-[14px] transition-colors"
+            >
+              Close and return to dashboard
+            </Button>
           </div>
         </div>
       )}
