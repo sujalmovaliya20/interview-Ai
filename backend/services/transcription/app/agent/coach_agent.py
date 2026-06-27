@@ -8,6 +8,7 @@ import asyncio
 import json
 import time
 import uuid
+import redis.asyncio as aioredis
 from typing import TypedDict, Annotated, Literal
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage, AIMessage
@@ -181,11 +182,37 @@ async def evaluate_answer_node(state: CoachState) -> CoachState:
   logger.info("evaluate_answer", session_id=state["session_id"])
   client = get_llm_client()
 
-  resume_context_str = ""
-  if state.get("resume_context"):
-    resume_context_str = f"CANDIDATE RESUME/BACKGROUND:\n{state['resume_context']}\n"
+  # Fast-path check for empty, extremely short, or common greeting/nonsense answers
+  answer_stripped = state["current_answer"].strip().lower().replace(".", "").replace(",", "").replace("!", "").replace("?", "")
+  greetings = {"hello", "hi", "hey", "test", "testing", "yo", "hola", "ok", "okay", "yes", "no", "asdf", "greeting", "nonsense", "bullshit", "none"}
+  is_nonsense = (
+    not answer_stripped 
+    or answer_stripped in greetings 
+    or len(answer_stripped.split()) < 3
+  )
 
-  eval_prompt = f"""You are an expert interview evaluator. Evaluate this answer strictly and fairly.
+  if is_nonsense:
+    logger.info("evaluate_answer_nonsense_override", session_id=state["session_id"])
+    evaluation = {
+      "star_score": 0.0,
+      "clarity_score": 0.0,
+      "technical_score": 0.0,
+      "confidence_score": 0.0,
+      "overall_score": 0.0,
+      "filler_words_detected": [],
+      "filler_word_count": 0,
+      "missing_points": ["Please provide a detailed, relevant answer to the question."],
+      "strengths_in_answer": [],
+      "improvements": ["The answer was a greeting, blank, or too short. A relevant and detailed response is required to receive scoring."],
+      "weak_categories": ["technical", "behavioral"],
+      "follow_up_question": "Could you please try answering the question again with more details?"
+    }
+  else:
+    resume_context_str = ""
+    if state.get("resume_context"):
+      resume_context_str = f"CANDIDATE RESUME/BACKGROUND:\n{state['resume_context']}\n"
+
+    eval_prompt = f"""You are an expert interview evaluator. Evaluate this answer strictly and fairly.
 
 {resume_context_str}
 QUESTION: {state["current_question"]}
@@ -193,6 +220,18 @@ ANSWER: {state["current_answer"]}
 ROLE CONTEXT: {state["role"]}
 
 Score each dimension 0-10 and provide specific feedback. Evaluate the response appropriately given the candidate's experience level and details in their resume.
+
+CRITICAL EVALUATION CRITERIA:
+1. RELEVANCY & SUBSTANCE CHECK:
+   - If the ANSWER is completely irrelevant to the question, off-topic, gibberish, nonsense, or contains no substance addressing the question:
+     * You MUST assign exactly 0 for ALL scores (overall_score, star_score, clarity_score, technical_score, confidence_score).
+     * Do NOT award points for "confidence" or "clarity" if the content is irrelevant.
+     * Set strengths_in_answer to [] (empty list).
+     * List "Answer is irrelevant or lacks content relevant to the question." as the primary improvement.
+2. STRICTNESS:
+   - Be highly critical. A good score (7+) must show actual technical knowledge, specific examples, or clear STAR method structure (Situation, Task, Action, Result) depending on the session type.
+   - If the answer has no technical content or doesn't mention any actual concepts/details related to the question, the technical_score MUST be 0.
+
 Return ONLY valid JSON:
 {{
   "star_score": <0-10>,
@@ -209,27 +248,27 @@ Return ONLY valid JSON:
   "follow_up_question": "a follow-up question based on their answer"
 }}"""
 
-  response = await client.chat.completions.create(
-    model=settings.nvidia_primary_model,
-    messages=[{"role": "user", "content": eval_prompt}],
-    max_tokens=600,
-    temperature=0.3  # low temp for consistent evaluation
-  )
+    response = await client.chat.completions.create(
+      model=settings.nvidia_primary_model,
+      messages=[{"role": "user", "content": eval_prompt}],
+      max_tokens=600,
+      temperature=0.3  # low temp for consistent evaluation
+    )
 
-  try:
-    raw = response.choices[0].message.content
-    clean = raw.replace("```json", "").replace("```", "").strip()
-    evaluation = json.loads(clean)
-  except json.JSONDecodeError:
-    logger.error("json_parse_failed", raw_response=response.choices[0].message.content)
-    evaluation = {
-      "overall_score": 5.0, "star_score": 5.0,
-      "clarity_score": 5.0, "technical_score": 5.0,
-      "confidence_score": 5.0, "filler_word_count": 0,
-      "filler_words_detected": [], "missing_points": [],
-      "strengths_in_answer": [], "improvements": [],
-      "weak_categories": [], "follow_up_question": ""
-    }
+    try:
+      raw = response.choices[0].message.content
+      clean = raw.replace("```json", "").replace("```", "").strip()
+      evaluation = json.loads(clean)
+    except json.JSONDecodeError:
+      logger.error("json_parse_failed", raw_response=response.choices[0].message.content)
+      evaluation = {
+        "overall_score": 5.0, "star_score": 5.0,
+        "clarity_score": 5.0, "technical_score": 5.0,
+        "confidence_score": 5.0, "filler_word_count": 0,
+        "filler_words_detected": [], "missing_points": [],
+        "strengths_in_answer": [], "improvements": [],
+        "weak_categories": [], "follow_up_question": ""
+      }
 
   # Save answer to DB
   try:
@@ -495,7 +534,35 @@ def build_coach_graph() -> StateGraph:
 class CoachAgentRunner:
   def __init__(self):
     self.graph = build_coach_graph()
-    self.active_sessions: dict[str, CoachState] = {}
+    self._redis = None
+
+  async def _get_redis(self):
+    if self._redis is None:
+      self._redis = await aioredis.from_url(
+        settings.redis_url, encoding="utf-8", decode_responses=True
+      )
+    return self._redis
+
+  async def _save_state(self, session_id: str, state: CoachState):
+    redis = await self._get_redis()
+    # Serialize state — handle ResumeProfile pydantic model
+    serializable = {**state}
+    if serializable.get("resume_profile"):
+      serializable["resume_profile"] = serializable["resume_profile"].model_dump() \
+        if hasattr(serializable["resume_profile"], "model_dump") \
+        else serializable["resume_profile"]
+    await redis.set(
+      f"coach:session:{session_id}",
+      json.dumps(serializable, default=str),
+      ex=7200  # 2 hour TTL
+    )
+
+  async def _load_state(self, session_id: str) -> CoachState | None:
+    redis = await self._get_redis()
+    raw = await redis.get(f"coach:session:{session_id}")
+    if not raw:
+      return None
+    return json.loads(raw)
 
   async def start_session(
     self, user_id: str, role: str,
@@ -505,7 +572,7 @@ class CoachAgentRunner:
     def _create_session():
       return supabase.table("coach_sessions").insert({
         "user_id": user_id, "role": role,
-        "session_type": session_type, "status": "active"
+        "session_type": f"{session_type}_{max_questions}", "status": "active"
       }).execute()
     result = await asyncio.to_thread(_create_session)
     session_id = result.data[0]["id"]
@@ -545,7 +612,7 @@ class CoachAgentRunner:
       "status": "active",
       "resume_context": resume_text
     }
-    self.active_sessions[session_id] = initial_state
+    await self._save_state(session_id, initial_state)
 
     # Run first question generation
     state = await self.graph.ainvoke(
@@ -553,7 +620,7 @@ class CoachAgentRunner:
       config={"recursion_limit": 10}
       # Route via entry_router to generate_question and stop
     )
-    self.active_sessions[session_id] = state
+    await self._save_state(session_id, state)
 
     return {
       "session_id": session_id,
@@ -564,15 +631,16 @@ class CoachAgentRunner:
     }
 
   async def submit_answer(self, session_id: str, answer_text: str) -> dict:
-    state = self.active_sessions.get(session_id)
+    state = await self._load_state(session_id)
     if not state:
-      # If not in local active_sessions memory, load from DB
+      # If not in Redis, load from DB
       try:
         def _get_session():
           return supabase.table("coach_sessions").select("*").eq("id", session_id).single().execute()
         session_db = await asyncio.to_thread(_get_session)
         if not session_db.data:
-          raise ValueError(f"Session {session_id} not found in database")
+          logger.error("session_not_found_in_redis_or_db", session_id=session_id)
+          raise ValueError(f"Session {session_id} not found")
         
         def _get_answers_db():
           return supabase.table("coach_answers").select("*").eq("session_id", session_id).execute()
@@ -592,13 +660,24 @@ class CoachAgentRunner:
         resume_text = await get_user_resume_context(user_id)
         latest_ans = answers[-1] if answers else None
 
+        session_type_db = session_db.data["session_type"]
+        max_questions_db = 10
+        session_type = "mixed"
+        if session_type_db:
+          parts = session_type_db.rsplit("_", 1)
+          if len(parts) == 2 and parts[1].isdigit():
+            session_type = parts[0]
+            max_questions_db = int(parts[1])
+          else:
+            session_type = session_type_db
+
         state = {
           "session_id": session_id,
           "user_id": user_id,
           "role": session_db.data["role"],
-          "session_type": session_db.data["session_type"],
+          "session_type": session_type,
           "questions_asked": len(answers),
-          "max_questions": 10, # default fallback
+          "max_questions": max_questions_db,
           "current_question": latest_ans["follow_up_asked"] if (latest_ans and latest_ans.get("follow_up_asked")) else "",
           "current_question_id": None,
           "current_answer": "",
@@ -613,6 +692,11 @@ class CoachAgentRunner:
         }
       except Exception as db_err:
         raise ValueError(f"Session {session_id} not found: {str(db_err)}")
+
+    # CRITICAL: log max_questions on every load to verify it persists correctly
+    logger.info("session_loaded", session_id=session_id,
+      max_questions=state.get("max_questions"),
+      questions_asked=state.get("questions_asked"))
 
     # Ensure resume_context exists in loaded state
     if state and "resume_context" not in state:
@@ -641,7 +725,7 @@ class CoachAgentRunner:
       state,
       config={"recursion_limit": 10}
     )
-    self.active_sessions[session_id] = new_state
+    await self._save_state(session_id, new_state)
 
     response = {
       "feedback": new_state["feedback"],
@@ -661,8 +745,11 @@ class CoachAgentRunner:
 
     if new_state["status"] == "completed":
       response["report"] = new_state["evaluation"].get("report", {})
-      if session_id in self.active_sessions:
-        del self.active_sessions[session_id]
+      try:
+        redis = await self._get_redis()
+        await redis.delete(f"coach:session:{session_id}")
+      except Exception as del_err:
+        logger.error("failed_to_delete_redis_session", error=str(del_err))
     else:
       response["next_question"] = new_state["current_question"]
       response["question_number"] = new_state["questions_asked"] + 1

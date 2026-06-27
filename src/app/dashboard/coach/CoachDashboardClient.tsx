@@ -74,7 +74,7 @@ export function CoachDashboardClient({ initialHistory, userId }: CoachDashboardC
   const router = useRouter()
   const [role, setRole] = useState('')
   const [sessionType, setSessionType] = useState('mixed')
-  const [maxQuestions, setMaxQuestions] = useState('5')
+  const [maxQuestions, setMaxQuestions] = useState('3')
   const [isLoading, setIsLoading] = useState(false)
 
   const handleStartSession = async (e: React.FormEvent) => {

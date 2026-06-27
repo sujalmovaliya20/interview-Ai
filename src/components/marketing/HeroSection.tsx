@@ -34,7 +34,7 @@ export function HeroSection() {
         {/* Version Badge */}
         <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-500/30 bg-violet-500/5 px-3.5 py-1 text-xs font-semibold mb-8 text-violet-300 shadow-sm shadow-violet-500/5 backdrop-blur-md">
           <span className="flex h-2 w-2 rounded-full bg-violet-500 animate-pulse"></span>
-          InterviewAI 2.0 is now live
+          InterviewAI is now Live
         </div>
 
         {/* Main Title Heading */}

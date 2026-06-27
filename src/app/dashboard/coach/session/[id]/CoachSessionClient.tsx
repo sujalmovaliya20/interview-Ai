@@ -46,7 +46,7 @@ export function CoachSessionClient({ sessionId, initialSession }: CoachSessionCl
   const router = useRouter()
   const [questionText, setQuestionText] = useState('')
   const [questionNumber, setQuestionNumber] = useState(1)
-  const [totalQuestions, setTotalQuestions] = useState(5)
+  const [totalQuestions, setTotalQuestions] = useState(3)
   const [answerText, setAnswerText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isTranscribing, setIsTranscribing] = useState(false)
@@ -230,7 +230,9 @@ export function CoachSessionClient({ sessionId, initialSession }: CoachSessionCl
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
         <div className="space-y-1">
           <h2 className="text-sm font-medium text-muted-foreground">Target Role: <span className="text-foreground font-semibold">{initialSession.role}</span></h2>
-          <p className="text-xs text-muted-foreground/80 capitalize">Mode: {initialSession.session_type.replace('_', ' ')} Interview</p>
+          <p className="text-xs text-muted-foreground/80 capitalize">
+            Mode: {initialSession.session_type.split('_').filter(p => isNaN(Number(p))).join(' ')} Interview
+          </p>
         </div>
         <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
           <div className="text-left sm:text-right">
