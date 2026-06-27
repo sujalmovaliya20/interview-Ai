@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useAudioCapture } from '@/hooks/useAudioCapture'
 import { getScoreVariant, variantStyles, getReadinessVariant } from '@/lib/scoreVariant'
 import { toast } from 'sonner'
+import { createClient } from '@/lib/supabase/client'
 
 interface CoachSessionClientProps {
   sessionId: string
@@ -197,6 +198,31 @@ export function CoachSessionClient({ sessionId, initialSession }: CoachSessionCl
     sessionStorage.removeItem(`coach_num_${sessionId}`)
     sessionStorage.removeItem(`coach_total_${sessionId}`)
     router.push('/dashboard/coach')
+  }
+
+  const handleCancelInterview = async () => {
+    const confirmCancel = window.confirm(
+      'Are you sure you want to cancel this interview? Your progress will be lost.'
+    )
+    if (!confirmCancel) return
+
+    try {
+      const supabase = createClient()
+      await (supabase as any)
+        .from('coach_sessions')
+        .update({ status: 'abandoned', ended_at: new Date().toISOString() })
+        .eq('id', sessionId)
+
+      sessionStorage.removeItem(`coach_q_${sessionId}`)
+      sessionStorage.removeItem(`coach_num_${sessionId}`)
+      sessionStorage.removeItem(`coach_total_${sessionId}`)
+
+      toast.success('Interview cancelled.')
+      router.push('/dashboard/coach')
+    } catch (err) {
+      console.error('Failed to cancel session:', err)
+      toast.error('An error occurred while cancelling the interview.')
+    }
   }
 
   return (
